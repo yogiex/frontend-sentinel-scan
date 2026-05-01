@@ -51,4 +51,8 @@ export const {
   clearNotifications,
 } = uiSlice.actions;
 
+// Selectors
+export const selectSidebarOpen = (state: { ui: UIState }) => state.ui.sidebarOpen;
+export const selectNotifications = (state: { ui: UIState }) => state.ui.notifications;
+
 export default uiSlice.reducer;
