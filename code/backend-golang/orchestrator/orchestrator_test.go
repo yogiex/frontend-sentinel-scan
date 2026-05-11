@@ -6,6 +6,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/inkubasi-btp-cybersecurity/vulnerability-scanner/internal/domain/entity"
 	"github.com/inkubasi-btp-cybersecurity/vulnerability-scanner/internal/domain/repository"
@@ -516,4 +517,99 @@ func TestOrchestrator_GetProgress_NotFound(t *testing.T) {
 	if ok {
 		t.Error("Expected false for non-existent scan")
 	}
+}
+
+func TestOrchestrator_StartDispatchLoop_Success(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	o, _, tmpDir := setupTestOrchestrator(t)
+	defer os.RemoveAll(tmpDir)
+
+	o.cfg.ResultQueue = make(chan worker.Result, 10)
+
+	mockRepo := o.cfg.ScanRepo.(*mockScanRepo)
+	mockRepo.On("UpdateStatus", mock.Anything, uint(1), entity.ScanStatusRunning).Return(nil)
+	mockRepo.On("UpdateProgress", mock.Anything, uint(1), mock.AnythingOfType("*entity.ScanProgress")).Return(nil).Times(2)
+	mockRepo.On("UpdateStatus", mock.Anything, uint(1), entity.ScanStatusCompleted).Return(nil)
+
+	o.StartScan(1, []string{"http://a.com", "http://b.com"}, "")
+	o.StartDispatchLoop(ctx)
+
+	o.cfg.ResultQueue <- worker.Result{ScanID: 1, TaskID: "t1", Error: nil}
+	o.cfg.ResultQueue <- worker.Result{ScanID: 1, TaskID: "t2", Error: nil}
+
+	time.Sleep(200 * time.Millisecond)
+
+	_, ok := o.GetProgress(1)
+	if ok {
+		t.Error("Progress should be cleaned up after all tasks complete")
+	}
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestOrchestrator_StartDispatchLoop_Failure(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	o, _, tmpDir := setupTestOrchestrator(t)
+	defer os.RemoveAll(tmpDir)
+
+	o.cfg.ResultQueue = make(chan worker.Result, 10)
+
+	mockRepo := o.cfg.ScanRepo.(*mockScanRepo)
+	mockRepo.On("UpdateStatus", mock.Anything, uint(1), entity.ScanStatusRunning).Return(nil)
+	mockRepo.On("UpdateProgress", mock.Anything, uint(1), mock.AnythingOfType("*entity.ScanProgress")).Return(nil).Times(2)
+	mockRepo.On("UpdateStatus", mock.Anything, uint(1), entity.ScanStatusCompleted).Return(nil)
+
+	o.StartScan(1, []string{"http://a.com", "http://b.com"}, "")
+	o.StartDispatchLoop(ctx)
+
+	o.cfg.ResultQueue <- worker.Result{ScanID: 1, TaskID: "t1", Error: errors.New("connection refused")}
+	o.cfg.ResultQueue <- worker.Result{ScanID: 1, TaskID: "t2", Error: errors.New("timeout")}
+
+	time.Sleep(200 * time.Millisecond)
+
+	_, ok := o.GetProgress(1)
+	if ok {
+		t.Error("Progress should be cleaned up after all failures")
+	}
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestOrchestrator_StartDispatchLoop_ContextCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	o, _, tmpDir := setupTestOrchestrator(t)
+	defer os.RemoveAll(tmpDir)
+
+	o.cfg.ResultQueue = make(chan worker.Result, 10)
+	o.StartDispatchLoop(ctx)
+
+	cancel()
+
+	time.Sleep(50 * time.Millisecond)
+}
+
+func TestOrchestrator_StartDispatchLoop_NilResultQueue(t *testing.T) {
+	o := New(Config{})
+	o.StartDispatchLoop(context.Background())
+}
+
+func TestOrchestrator_StartDispatchLoop_ChannelClose(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	o, _, tmpDir := setupTestOrchestrator(t)
+	defer os.RemoveAll(tmpDir)
+
+	resultQueue := make(chan worker.Result, 10)
+	o.cfg.ResultQueue = resultQueue
+	o.StartDispatchLoop(ctx)
+
+	close(resultQueue)
+
+	time.Sleep(50 * time.Millisecond)
 }

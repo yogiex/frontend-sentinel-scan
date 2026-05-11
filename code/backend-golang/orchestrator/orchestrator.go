@@ -19,6 +19,7 @@ type Config struct {
 	DB              *gorm.DB
 	TemplateLoader  *template.Loader
 	TaskQueue       chan worker.Task
+	ResultQueue     chan worker.Result
 	EventBus        *event.Bus
 	ScanRepo        repository.ScanRepository
 	FindingRepo     repository.FindingRepository
@@ -143,4 +144,26 @@ func (o *Orchestrator) GetProgress(scanID uint) (*entity.ScanProgress, bool) {
 	}
 	copied := *progress
 	return &copied, true
+}
+
+func (o *Orchestrator) StartDispatchLoop(ctx context.Context) {
+	if o.cfg.ResultQueue == nil {
+		return
+	}
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case result, ok := <-o.cfg.ResultQueue:
+				if !ok {
+					return
+				}
+				success := result.Error == nil
+				if err := o.CompleteTask(result.ScanID, success); err != nil {
+					log.Printf("dispatch: CompleteTask(%d) failed: %v", result.ScanID, err)
+				}
+			}
+		}
+	}()
 }
