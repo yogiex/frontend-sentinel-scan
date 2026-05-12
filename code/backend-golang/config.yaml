@@ -1,0 +1,54 @@
+server:
+  host: "localhost"
+  port: 8080
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "postgres"
+  dbname: "vulnscanner"
+  sslmode: "disable"
+
+rabbitmq:
+  host: "localhost"
+  port: 5672
+  user: "admin"
+  password: "admin"
+  vhost: "/"
+  prefetch_count: 10
+  heartbeat: 30
+  connection_timeout: 5
+  max_retries: 3
+  retry_delay_ms: 30000
+
+worker:
+  size: 50
+  max_retries: 3
+  task_timeout: 30
+  autoscale:
+    enabled: false
+    min_workers: 5
+    max_workers: 100
+    scale_up_threshold: 5
+    scale_down_threshold: 1
+    scale_up_by: 5
+    scale_down_by: 3
+    poll_interval_sec: 10
+    cooldown_sec: 30
+
+scanner:
+  chromium_path: ""
+  timeout_sec: 15
+  headless_size: 10
+
+authscan:
+  session_check_interval: 30
+  verify_timeout: 10
+  max_retries: 3
+
+report:
+  output_dir: "./reports"
+
+template:
+  dir: "./templates"

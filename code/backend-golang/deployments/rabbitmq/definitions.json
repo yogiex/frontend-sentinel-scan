@@ -1,0 +1,168 @@
+{
+  "rabbit_version": "4.0",
+  "rabbitmq_version": "4.0.0",
+  "users": [
+    {
+      "name": "admin",
+      "password_hash": "",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "scan.tasks",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "scan.events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "scan.tasks.dlx",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "scan_tasks",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "scan.tasks.dlx",
+        "x-dead-letter-routing-key": "task.dlq"
+      }
+    },
+    {
+      "name": "scan_tasks_http",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "scan.tasks.dlx",
+        "x-dead-letter-routing-key": "task.dlq"
+      }
+    },
+    {
+      "name": "scan_tasks_headless",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "scan.tasks.dlx",
+        "x-dead-letter-routing-key": "task.dlq"
+      }
+    },
+    {
+      "name": "scan_retry",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "scan.tasks",
+        "x-dead-letter-routing-key": "task.new",
+        "x-message-ttl": 30000
+      }
+    },
+    {
+      "name": "scan_dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "event_persist",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "event_audit",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "scan.tasks",
+      "vhost": "/",
+      "destination": "scan_tasks",
+      "destination_type": "queue",
+      "routing_key": "task.new",
+      "arguments": {}
+    },
+    {
+      "source": "scan.tasks",
+      "vhost": "/",
+      "destination": "scan_tasks_http",
+      "destination_type": "queue",
+      "routing_key": "task.http",
+      "arguments": {}
+    },
+    {
+      "source": "scan.tasks",
+      "vhost": "/",
+      "destination": "scan_tasks_headless",
+      "destination_type": "queue",
+      "routing_key": "task.headless",
+      "arguments": {}
+    },
+    {
+      "source": "scan.events",
+      "vhost": "/",
+      "destination": "event_persist",
+      "destination_type": "queue",
+      "routing_key": "scan.#",
+      "arguments": {}
+    },
+    {
+      "source": "scan.events",
+      "vhost": "/",
+      "destination": "event_audit",
+      "destination_type": "queue",
+      "routing_key": "scan.#",
+      "arguments": {}
+    },
+    {
+      "source": "scan.tasks.dlx",
+      "vhost": "/",
+      "destination": "scan_dlq",
+      "destination_type": "queue",
+      "routing_key": "task.dlq",
+      "arguments": {}
+    }
+  ]
+}
