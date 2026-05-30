@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.gitignore
+*.md
+thoughts/
+docker-compose/
+.vscode/
+.env*
+!package.json
+!package-lock.json

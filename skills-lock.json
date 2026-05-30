@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "frontend-design": {
+      "source": "buildermethods/design-os",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/frontend-design/SKILL.md",
+      "computedHash": "ef27b958d3a46961a63a15fcb55de729d447d34e8cc868d46679f47b2ab31573"
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "local",
+      "skillPath": ".opencode/skills/web-design-guidelines/SKILL.md",
+      "computedHash": "local"
+    },
+    "react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "local",
+      "skillPath": ".opencode/skills/react-best-practices/SKILL.md",
+      "computedHash": "local"
+    }
+  }
+}

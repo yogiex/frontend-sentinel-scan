@@ -1,0 +1,31 @@
+services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile.dev
+    container_name: sentinelscan-frontend-dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../src:/app/src:cached
+      - ../public:/app/public:cached
+      - ../package.json:/app/package.json:cached
+      - ../tsconfig.json:/app/tsconfig.json:cached
+      - ../tsconfig.app.json:/app/tsconfig.app.json:cached
+      - ../vite.config.ts:/app/vite.config.ts:cached
+      - ../index.html:/app/index.html:cached
+      - ../postcss.config.js:/app/postcss.config.js:cached
+      - ../tailwind.config.js:/app/tailwind.config.js:cached
+      - ../components.json:/app/components.json:cached
+      - /app/node_modules
+      - ../logs:/var/log/nginx
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    restart: "no"
+    logging:
+      driver: "local"
+      options:
+        max-size: "5m"
+        max-file: "2"

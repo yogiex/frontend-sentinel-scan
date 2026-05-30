@@ -1,0 +1,143 @@
+{
+  "session_id": "ses_ttuafjb7",
+  "browser_session_id": "ses_xw9llgof",
+  "request": "Integrate telemetry (Web Vitals, memory, network, FPS, errors) into the existing sidebar Logs section (/dashboard/logs LogViewer page) in SentinelScan dashboard",
+  "created_at": 1777734965767,
+  "updated_at": 1777735220144,
+  "branches": {
+    "tab-integration": {
+      "id": "tab-integration",
+      "scope": "Add Performance tab to existing LogViewer page alongside Access Logs and Error Logs tabs",
+      "status": "done",
+      "questions": [
+        {
+          "id": "q_58ryqbig",
+          "type": "pick_one",
+          "text": "How should the Performance tab be structured in the LogViewer?",
+          "config": {
+            "question": "How should the Performance tab be structured in the LogViewer?",
+            "options": [
+              {
+                "id": "cards-only",
+                "label": "Cards Only",
+                "description": "Simple stat cards for each metric (LCP, CLS, INP, FCP, Memory, FPS, Network)"
+              },
+              {
+                "id": "cards-charts",
+                "label": "Cards + Charts",
+                "description": "Stat cards plus simple trend charts showing metric history over time"
+              },
+              {
+                "id": "dashboard-grid",
+                "label": "Dashboard Grid",
+                "description": "Full grid layout with gauges, bars, and detailed breakdowns per metric category"
+              },
+              {
+                "id": "timeline-view",
+                "label": "Timeline View",
+                "description": "Chronological timeline showing when metrics were collected with severity indicators"
+              }
+            ],
+            "context": "LogViewer already has tabbed interface with Access Logs and Error Logs. We're adding a 3rd tab for Performance telemetry."
+          },
+          "answer": {
+            "selected": "dashboard-grid"
+          },
+          "answeredAt": 1777735136670
+        }
+      ],
+      "finding": "The Performance tab should be added to the existing LogViewer page at /dashboard/logs, positioned alongside the existing Access Logs and Error Logs tabs. The tab will use a dashboard grid layout to organize and display telemetry data including Web Vitals (LCP, FID, CLS), memory usage metrics, network request statistics, FPS counter, and error tracking. This grid-based approach provides a structured, scannable view of all performance telemetry in one place within the Logs section."
+    },
+    "sidebar-nav": {
+      "id": "sidebar-nav",
+      "scope": "How the sidebar navigation should reflect the combined Logs + Telemetry section",
+      "status": "done",
+      "questions": [
+        {
+          "id": "q_nknnju4n",
+          "type": "pick_one",
+          "text": "How should the sidebar item for Logs look?",
+          "config": {
+            "question": "How should the sidebar item for Logs look?",
+            "options": [
+              {
+                "id": "keep-current",
+                "label": "Keep Current Name",
+                "description": "Keep 'Access & Error Logs' (📋) — telemetry is just a tab inside, no sidebar change needed"
+              },
+              {
+                "id": "rename-observability",
+                "label": "Rename to 'Observability'",
+                "description": "Change to 'Observability' (📊) — broader term covering logs + performance metrics"
+              },
+              {
+                "id": "rename-system-health",
+                "label": "Rename to 'System Health'",
+                "description": "Change to 'System Health' (🏥) — more user-friendly, implies monitoring"
+              },
+              {
+                "id": "split-entries",
+                "label": "Split into Two Entries",
+                "description": "Keep 'Access & Error Logs' + add new 'Performance' entry as sub-item or separate"
+              }
+            ],
+            "context": "Current sidebar has 'Access & Error Logs' (📋 icon) linking to /dashboard/logs. We need to decide if the name/icon should change to reflect the added telemetry."
+          },
+          "answer": {
+            "selected": "rename-system-health"
+          },
+          "answeredAt": 1777735136681
+        }
+      ],
+      "finding": "Sidebar navigation item originally labeled 'Logs' (linked to /dashboard/logs LogViewer page) should be renamed to 'System Health' to reflect the combined content: existing Access Logs and Error Logs tabs, plus the new Performance tab with integrated Web Vitals, memory, network, FPS, and error telemetry. The item retains its original route, sidebar position, and existing icon."
+    },
+    "data-persistence": {
+      "id": "data-persistence",
+      "scope": "How telemetry data should be stored, persisted, and displayed historically",
+      "status": "done",
+      "questions": [
+        {
+          "id": "q_dfkjs4ef",
+          "type": "pick_one",
+          "text": "How should telemetry data be persisted for historical viewing?",
+          "config": {
+            "question": "How should telemetry data be persisted for historical viewing?",
+            "options": [
+              {
+                "id": "session-only",
+                "label": "Session Only (No Persistence)",
+                "description": "Live data only — refreshes on page load, no history. Simplest approach."
+              },
+              {
+                "id": "localstorage-snapshots",
+                "label": "localStorage Snapshots",
+                "description": "Save periodic snapshots to localStorage (e.g. every 30s, keep last 100). Shows trends within a session."
+              },
+              {
+                "id": "indexeddb-history",
+                "label": "IndexedDB History",
+                "description": "Use IndexedDB for larger storage — keep hours/days of telemetry data with charts and trends."
+              },
+              {
+                "id": "hybrid-live-stored",
+                "label": "Live + Periodic Export",
+                "description": "Live display + manual export button to download JSON/CSV of current snapshot for analysis"
+              }
+            ],
+            "context": "Telemetry currently collects live metrics (Web Vitals, memory, network, FPS). For the LogViewer Performance tab, we need to decide how much historical data to show and how to store it."
+          },
+          "answer": {
+            "selected": "hybrid-live-stored"
+          },
+          "answeredAt": 1777735136687
+        }
+      ],
+      "finding": "User wants a hybrid approach for telemetry data: real-time live display combined with persistent storage for historical viewing. Telemetry data (Web Vitals, memory usage, network metrics, FPS, and errors) should be available both as live streaming data in the Performance tab and stored to allow browsing historical trends and past incidents. This requires implementing both a live data collection/display mechanism and a storage solution (likely a combination of local storage for short-term and/or backend persistence for long-term historical data)."
+    }
+  },
+  "branch_order": [
+    "tab-integration",
+    "sidebar-nav",
+    "data-persistence"
+  ]
+}

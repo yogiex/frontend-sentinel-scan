@@ -1,0 +1,4 @@
+.loginContainer {
+  /* Legacy styles removed. Login page is now fully styled in `index.tsx`. */
+  font-size: 0.95rem;
+}

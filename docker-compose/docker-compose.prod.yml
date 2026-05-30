@@ -1,0 +1,47 @@
+services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://api.sentinelscan.com/api}
+        VITE_WS_URL: ${VITE_WS_URL:-wss://api.sentinelscan.com/api/scans}
+        VITE_APP_ENV: production
+    container_name: sentinelscan-frontend-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+        reservations:
+          memory: 64M
+          cpus: "0.1"
+    environment:
+      - APP_ENV=production
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "10"
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    volumes:
+      # SSL certificates - mount from host (place cert.pem and key.pem in docker-compose/ssl/)
+      - ./ssl:/etc/nginx/ssl:ro
+      # Log files - mounted to host for persistence and daily rotation
+      - ../logs:/var/log/nginx
+    tmpfs:
+      - /tmp:noexec,nosuid,size=64m
+      - /var/cache/nginx:noexec,nosuid,size=64m
+      - /var/run:noexec,nosuid,size=16m

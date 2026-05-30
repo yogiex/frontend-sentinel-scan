@@ -1,0 +1,36 @@
+services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://staging-api.sentinelscan.com/api}
+        VITE_WS_URL: ${VITE_WS_URL:-wss://staging-api.sentinelscan.com/api/scans}
+        VITE_APP_ENV: staging
+    container_name: sentinelscan-frontend-staging
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+        reservations:
+          memory: 128M
+          cpus: "0.25"
+    environment:
+      - APP_ENV=staging
+    volumes:
+      - ../logs:/var/log/nginx
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
