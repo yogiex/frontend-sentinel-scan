@@ -42,14 +42,21 @@ export function useRealtimeAudit(
   // Setup on mount if initialActive
   useEffect(() => {
     if (initialActive) {
-      start();
+      const timer = setTimeout(() => start(), 0);
+      return () => {
+        clearTimeout(timer);
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
     }
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
-  }, []); // Only run on mount
+    // Only run on mount intentionally
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     active,

@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./card"
+import { Card, CardHeader, CardTitle, CardFooter } from "./card"
 
 describe("Card - Clean Modern Style", () => {
   it("renders with rounded-xl, border, and shadow", () => {

@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react"
 import { Button } from "./button"
-import { cn } from "@/lib/utils"
 
 describe("Button - Brutalist Style", () => {
   it("renders with default variant", () => {

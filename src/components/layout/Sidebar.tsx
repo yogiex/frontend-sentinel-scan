@@ -67,7 +67,7 @@ function getStoredUser() {
   try {
     const stored = localStorage.getItem('sentinelscan_user');
     if (stored) return JSON.parse(stored);
-  } catch {}
+  } catch { /* ignore parse error */ }
   return null;
 }
 

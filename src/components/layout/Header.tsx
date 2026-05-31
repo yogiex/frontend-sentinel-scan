@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * SentinelScan Header Component
  * Path: src/components/layout/Header.tsx
@@ -15,8 +14,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   toggleSidebar,
