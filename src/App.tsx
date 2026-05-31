@@ -30,6 +30,7 @@ import { LogViewer } from './pages/Dashboard/LogViewer';
 import { TicketList } from './pages/Dashboard/Tickets/TicketList';
 import { TicketDetail } from './pages/Dashboard/Tickets/TicketDetail';
 import { CreateTicket } from './pages/Dashboard/Tickets/CreateTicket';
+import { KanbanBoardPage } from './pages/Dashboard/Tickets/KanbanBoardPage';
 
 function App() {
   // Enable automatic navigation logging for all route changes
@@ -70,6 +71,7 @@ function App() {
                   <Route path="tickets">
                     <Route index element={<TicketList />} />
                     <Route path="new" element={<CreateTicket />} />
+                    <Route path="kanban" element={<KanbanBoardPage />} />
                     <Route path=":id" element={<TicketDetail />} />
                   </Route>
             </Route>

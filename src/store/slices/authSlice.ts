@@ -45,8 +45,8 @@ export const mockLogin = createAsyncThunk(
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // Find user by username
-    const foundUser = MOCK_USERS.find(u => u.username === credentials.username);
+    // Find user by email or username
+    const foundUser = MOCK_USERS.find(u => u.email === credentials.username || u.username === credentials.username);
     
     if (foundUser && foundUser.password === credentials.password) {
       // Get permissions from matrix based on role

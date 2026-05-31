@@ -7,11 +7,12 @@ import { cn } from "@/lib/utils"
 /* eslint-disable react-refresh/only-export-components */
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-bold font-mono uppercase tracking-wider border-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--text-primary)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 rounded-none",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium border ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--text-primary)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 rounded-lg transition-colors duration-150",
   {
     variants: {
       variant: {
-        default: "bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)] hover:bg-[var(--text-primary)]/90",
+        default: "bg-[var(--text-primary)] text-white border-[var(--text-primary)] hover:bg-[var(--text-primary)]/90",
+        primary: "bg-[var(--primary)] text-white border-[var(--primary)] hover:bg-[var(--primary-dark)]",
         destructive:
           "bg-[var(--danger)] text-white border-[var(--danger)] hover:bg-[var(--danger)]/90",
         outline:

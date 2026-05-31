@@ -36,11 +36,9 @@ export function StatsCard({
 
   return (
     <Card
-      className="transition-all duration-200 hover:shadow-md hover:border-opacity-60"
+      className="hover:shadow-md transition-shadow"
       style={{
-        backgroundColor: 'var(--bg-card)',
         borderColor: borderStyle,
-        borderRadius: 'var(--radius)',
       }}
     >
       <CardContent className="p-4">
@@ -51,8 +49,8 @@ export function StatsCard({
               {label}
             </p>
             <p
-              className="text-2xl font-bold mt-1 font-mono truncate"
-              style={{ color, fontVariantNumeric: 'tabular-nums' }}
+              className="text-2xl font-bold mt-1 font-mono tabular-nums truncate"
+              style={{ color }}
             >
               {value}
             </p>

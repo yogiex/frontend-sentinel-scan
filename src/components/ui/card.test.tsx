@@ -1,19 +1,19 @@
 import { render, screen } from "@testing-library/react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./card"
 
-describe("Card - Brutalist Style", () => {
-  it("renders with no shadow and rounded-none", () => {
+describe("Card - Clean Modern Style", () => {
+  it("renders with rounded-xl, border, and shadow", () => {
     render(<Card>Card content</Card>)
     const card = screen.getByText("Card content")
-    expect(card).toHaveClass("rounded-none")
-    expect(card).toHaveClass("border-2")
-    expect(card.className).not.toContain("shadow")
+    expect(card).toHaveClass("rounded-xl")
+    expect(card).toHaveClass("border")
+    expect(card).toHaveClass("shadow-sm")
   })
 
-  it("uses brutalist background", () => {
+  it("uses card background", () => {
     render(<Card>Background</Card>)
     const card = screen.getByText("Background")
-    expect(card).toHaveClass("bg-[var(--bg-secondary)]")
+    expect(card).toHaveClass("bg-[var(--bg-card)]")
   })
 
   it("CardHeader has bottom border", () => {
@@ -23,18 +23,18 @@ describe("Card - Brutalist Style", () => {
       </Card>
     )
     const header = screen.getByText("Header")
-    expect(header).toHaveClass("border-b-2")
+    expect(header).toHaveClass("border-b")
   })
 
-  it("CardTitle uses monospace and uppercase", () => {
+  it("CardTitle uses regular font (not monospace)", () => {
     render(
       <Card>
         <CardTitle>Test Title</CardTitle>
       </Card>
     )
     const title = screen.getByText("Test Title")
-    expect(title).toHaveClass("font-mono")
-    expect(title).toHaveClass("uppercase")
+    expect(title).not.toHaveClass("font-mono")
+    expect(title).not.toHaveClass("uppercase")
   })
 
   it("CardFooter has top border", () => {
@@ -44,6 +44,6 @@ describe("Card - Brutalist Style", () => {
       </Card>
     )
     const footer = screen.getByText("Footer")
-    expect(footer).toHaveClass("border-t-2")
+    expect(footer).toHaveClass("border-t")
   })
 })

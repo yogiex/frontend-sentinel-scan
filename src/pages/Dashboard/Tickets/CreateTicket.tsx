@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-// Card components removed - using custom industrial design
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -98,74 +98,57 @@ export function CreateTicket(): ReactNode {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Industrial Header */}
-      <div className="mb-6 flex items-center justify-between border-b-2 border-slate-900 pb-4">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="font-mono text-xs text-slate-500 hover:text-slate-900 transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 mr-2" />
-          BACK
-        </Button>
-        <div className="font-mono text-[10px] text-slate-400 tracking-widest uppercase">
-          Ticket Management System
-        </div>
-      </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Back */}
+      <Button
+        variant="ghost"
+        onClick={() => navigate(-1)}
+        className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+        size="sm"
+      >
+        <ArrowLeft className="w-4 h-4 mr-1.5" />
+        Back
+      </Button>
 
-      {/* Main Form Card - Industrial Style */}
-      <div className="border-2 border-slate-900 bg-white shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
-        {/* Card Header */}
-        <div className="border-b-2 border-slate-900 px-6 py-4 bg-slate-100">
+      {/* Main Form Card */}
+      <Card>
+        <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-500 border-2 border-slate-900">
+            <div className="p-2 bg-indigo-600 rounded-lg">
               <Shield className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-mono text-lg font-bold tracking-wider text-slate-900">
-                CREATE NEW TICKET
-              </h1>
-              <p className="font-mono text-[10px] text-slate-500 mt-0.5">
+              <CardTitle>Create New Ticket</CardTitle>
+              <p className="text-sm text-[var(--text-secondary)] mt-0.5">
                 Vulnerability remediation tracking
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Form Content */}
-        <div className="p-6">
+        </CardHeader>
+        <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              
+
               {/* Section 1: Basic Information */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-300">
-                  <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center font-mono text-xs font-bold">
-                    1
-                  </div>
-                  <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-600">
-                    Basic Information
-                  </h3>
-                </div>
-                
+                <h3 className="text-sm font-semibold text-[var(--text-primary)] pb-2 border-b border-[var(--border)]">
+                  Basic Information
+                </h3>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="title"
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
-                        <FormLabel className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                          Ticket Title *
-                        </FormLabel>
+                        <FormLabel>Ticket Title *</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             placeholder="e.g., Remediate CVE-2024-3094 on DB-Prod-01"
-                            className="font-mono text-sm border-2 border-slate-300 bg-slate-50 focus:border-indigo-600 transition-colors"
                           />
                         </FormControl>
-                        <FormMessage className="font-mono text-[10px]" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -175,18 +158,16 @@ export function CreateTicket(): ReactNode {
                     name="description"
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
-                        <FormLabel className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                          Description *
-                        </FormLabel>
+                        <FormLabel>Description *</FormLabel>
                         <FormControl>
                           <Textarea
                             {...field}
                             rows={4}
                             placeholder="Steps to remediate, notes, references..."
-                            className="font-mono text-sm border-2 border-slate-300 bg-slate-50 focus:border-indigo-600 transition-colors resize-none"
+                            className="resize-none"
                           />
                         </FormControl>
-                        <FormMessage className="font-mono text-[10px]" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -196,47 +177,45 @@ export function CreateTicket(): ReactNode {
                     name="priority"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                          Priority Level
-                        </FormLabel>
+                        <FormLabel>Priority Level</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="font-mono text-xs border-2 border-slate-300 bg-slate-50 focus:border-indigo-600 transition-colors">
+                            <SelectTrigger>
                               <SelectValue placeholder="Select priority" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="border-2 border-slate-300">
-                            <SelectItem value="critical" className="font-mono text-xs focus:bg-red-50">
+                          <SelectContent>
+                            <SelectItem value="critical">
                               <div className="flex items-center gap-2">
                                 <AlertTriangle className="w-3 h-3 text-red-500" />
-                                <span className="font-bold">CRITICAL</span>
-                                <span className="text-[10px] text-slate-500">(7 days SLA)</span>
+                                <span>Critical</span>
+                                <span className="text-xs text-[var(--text-secondary)]">(7 days SLA)</span>
                               </div>
                             </SelectItem>
-                            <SelectItem value="high" className="font-mono text-xs focus:bg-orange-50">
+                            <SelectItem value="high">
                               <div className="flex items-center gap-2">
                                 <AlertTriangle className="w-3 h-3 text-orange-500" />
-                                <span className="font-bold">HIGH</span>
-                                <span className="text-[10px] text-slate-500">(30 days SLA)</span>
+                                <span>High</span>
+                                <span className="text-xs text-[var(--text-secondary)]">(30 days SLA)</span>
                               </div>
                             </SelectItem>
-                            <SelectItem value="medium" className="font-mono text-xs focus:bg-amber-50">
+                            <SelectItem value="medium">
                               <div className="flex items-center gap-2">
                                 <Shield className="w-3 h-3 text-amber-500" />
-                                <span className="font-bold">MEDIUM</span>
-                                <span className="text-[10px] text-slate-500">(90 days SLA)</span>
+                                <span>Medium</span>
+                                <span className="text-xs text-[var(--text-secondary)]">(90 days SLA)</span>
                               </div>
                             </SelectItem>
-                            <SelectItem value="low" className="font-mono text-xs focus:bg-emerald-50">
+                            <SelectItem value="low">
                               <div className="flex items-center gap-2">
                                 <CheckCircle className="w-3 h-3 text-emerald-500" />
-                                <span className="font-bold">LOW</span>
-                                <span className="text-[10px] text-slate-500">(180 days SLA)</span>
+                                <span>Low</span>
+                                <span className="text-xs text-[var(--text-secondary)]">(180 days SLA)</span>
                               </div>
                             </SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormMessage className="font-mono text-[10px]" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -246,24 +225,22 @@ export function CreateTicket(): ReactNode {
                     name="dueDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                          Due Date (Optional)
-                        </FormLabel>
+                        <FormLabel>Due Date (Optional)</FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
                                 variant="outline"
                                 className={cn(
-                                  'font-mono text-xs w-full justify-start text-left border-2 border-slate-300 bg-slate-50 hover:bg-slate-100 transition-colors',
-                                  !field.value && 'text-slate-400'
+                                  'w-full justify-start text-left font-normal',
+                                  !field.value && 'text-[var(--text-secondary)]'
                                 )}
                               >
                                 {field.value ? format(field.value, 'PPP') : 'Pick a date'}
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[340px] p-0 border-2 border-slate-300" align="start">
+                          <PopoverContent className="w-[340px] p-0" align="start">
                             <Calendar
                               mode="single"
                               selected={field.value}
@@ -273,11 +250,10 @@ export function CreateTicket(): ReactNode {
                                 today.setHours(0, 0, 0, 0);
                                 return date < today;
                               }}
-                               className="bg-white"
                             />
                           </PopoverContent>
                         </Popover>
-                        <FormMessage className="font-mono text-[10px]" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -285,38 +261,31 @@ export function CreateTicket(): ReactNode {
               </div>
 
               {/* Section 2: Assignment */}
-              <div className="space-y-4 pt-6 border-t-2 border-slate-300">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-300">
-                  <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center font-mono text-xs font-bold">
-                    2
-                  </div>
-                  <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-600">
-                    Assignment
-                  </h3>
-                </div>
-                
+              <div className="space-y-4 pt-6 border-t border-[var(--border)]">
+                <h3 className="text-sm font-semibold text-[var(--text-primary)] pb-2 border-b border-[var(--border)]">
+                  Assignment
+                </h3>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="assignedTeam"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                          Assign to Team
-                        </FormLabel>
+                        <FormLabel>Assign to Team</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="font-mono text-xs border-2 border-slate-300 bg-slate-50 focus:border-indigo-600 transition-colors">
+                            <SelectTrigger>
                               <SelectValue placeholder="Select team" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="border-2 border-slate-300">
-                            <SelectItem value="security" className="font-mono text-xs">Security Team</SelectItem>
-                            <SelectItem value="infra" className="font-mono text-xs">Infrastructure Team</SelectItem>
-                            <SelectItem value="devops" className="font-mono text-xs">DevOps</SelectItem>
+                          <SelectContent>
+                            <SelectItem value="security">Security Team</SelectItem>
+                            <SelectItem value="infra">Infrastructure Team</SelectItem>
+                            <SelectItem value="devops">DevOps</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormMessage className="font-mono text-[10px]" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -326,22 +295,20 @@ export function CreateTicket(): ReactNode {
                     name="assignedTo"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                          Or Assign to User (Optional)
-                        </FormLabel>
+                        <FormLabel>Or Assign to User (Optional)</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="font-mono text-xs border-2 border-slate-300 bg-slate-50 focus:border-indigo-600 transition-colors">
+                            <SelectTrigger>
                               <SelectValue placeholder="Select user" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="border-2 border-slate-300">
-                            <SelectItem value="user-1" className="font-mono text-xs">Admin User</SelectItem>
-                            <SelectItem value="user-2" className="font-mono text-xs">Security Analyst</SelectItem>
-                            <SelectItem value="user-3" className="font-mono text-xs">Developer</SelectItem>
+                          <SelectContent>
+                            <SelectItem value="user-1">Admin User</SelectItem>
+                            <SelectItem value="user-2">Security Analyst</SelectItem>
+                            <SelectItem value="user-3">Developer</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormMessage className="font-mono text-[10px]" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -349,33 +316,25 @@ export function CreateTicket(): ReactNode {
               </div>
 
               {/* Section 3: Vulnerability Context */}
-              <div className="space-y-4 pt-6 border-t-2 border-slate-300">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-300">
-                  <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center font-mono text-xs font-bold">
-                    3
-                  </div>
-                  <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-600">
-                    Vulnerability Context
-                  </h3>
-                </div>
-                
+              <div className="space-y-4 pt-6 border-t border-[var(--border)]">
+                <h3 className="text-sm font-semibold text-[var(--text-primary)] pb-2 border-b border-[var(--border)]">
+                  Vulnerability Context
+                </h3>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="cveId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                          CVE ID
-                        </FormLabel>
+                        <FormLabel>CVE ID</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             placeholder="e.g., CVE-2024-3094"
-                            className="font-mono text-xs border-2 border-slate-300 bg-slate-50 focus:border-indigo-600 transition-colors"
                           />
                         </FormControl>
-                        <FormMessage className="font-mono text-[10px]" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -385,9 +344,7 @@ export function CreateTicket(): ReactNode {
                     name="cvssScore"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                          CVSS Score
-                        </FormLabel>
+                        <FormLabel>CVSS Score</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
@@ -396,11 +353,10 @@ export function CreateTicket(): ReactNode {
                             max="10"
                             step="0.1"
                             placeholder="0.0"
-                            className="font-mono text-xs border-2 border-slate-300 bg-slate-50 focus:border-indigo-600 transition-colors"
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
                           />
                         </FormControl>
-                        <FormMessage className="font-mono text-[10px]" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -410,18 +366,16 @@ export function CreateTicket(): ReactNode {
                     name="remediation"
                     render={({ field }) => (
                       <FormItem className="md:col-span-2">
-                        <FormLabel className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                          Remediation Steps
-                        </FormLabel>
+                        <FormLabel>Remediation Steps</FormLabel>
                         <FormControl>
                           <Textarea
                             {...field}
                             rows={3}
                             placeholder="How to fix this vulnerability..."
-                            className="font-mono text-sm border-2 border-slate-300 bg-slate-50 focus:border-indigo-600 transition-colors resize-none"
+                            className="resize-none"
                           />
                         </FormControl>
-                        <FormMessage className="font-mono text-[10px]" />
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -429,27 +383,25 @@ export function CreateTicket(): ReactNode {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 pt-6 border-t-2 border-slate-300">
+              <div className="flex gap-3 pt-6 border-t border-[var(--border)]">
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                   className="font-mono font-bold tracking-wider text-xs bg-indigo-600 text-white border-2 border-indigo-600 hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed px-6 py-2"
                 >
-                  {isSubmitting ? 'CREATING...' : 'CREATE TICKET'}
+                  {isSubmitting ? 'Creating...' : 'Create Ticket'}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => navigate(-1)}
-                  className="font-mono text-xs border-2 border-slate-300 text-slate-600 hover:bg-slate-50 transition-colors"
                 >
-                  CANCEL
+                  Cancel
                 </Button>
               </div>
             </form>
           </Form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

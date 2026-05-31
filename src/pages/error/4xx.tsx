@@ -116,10 +116,7 @@ export function Error4xx(): ReactNode {
               Try Again
             </Button>
 
-            <Button
-              onClick={() => navigate('/')}
-              className="flex-1 font-mono bg-indigo-600 hover:bg-indigo-700 text-white"
-            >
+            <Button variant="primary" onClick={() => navigate('/')}>
               <Home className="w-4 h-4 mr-2" />
               Home
             </Button>

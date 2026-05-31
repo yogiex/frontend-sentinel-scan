@@ -22,6 +22,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
+import { useAppDispatch } from '@/store';
+import { mockLogin } from '@/store/slices/authSlice';
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email address"),
@@ -36,6 +38,7 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -58,9 +61,10 @@ function LoginForm() {
     setError(null);
 
     try {
-      // TODO: Replace with actual auth API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log(values);
+      await dispatch(mockLogin({
+        username: values.email,
+        password: values.password,
+      })).unwrap();
 
       if (values.rememberMe) {
         localStorage.setItem("rememberMe", "true");
@@ -70,7 +74,7 @@ function LoginForm() {
 
       navigate("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed. Please check your credentials and try again, or contact support if the issue persists.");
+      setError(typeof err === 'string' ? err : "Authentication failed. Please check your credentials and try again, or contact support if the issue persists.");
     } finally {
       setIsLoading(false);
     }

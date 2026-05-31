@@ -1,14 +1,22 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Ticket, TicketStatus, TicketFilters, TicketComment } from '@/types/ticket';
-import { mockTickets } from '@/types/ticket';
+import { ticketStore, createTicket, updateTicketStatus } from '@/lib/ticket-store';
 
 export function useTicket() {
-  const [tickets, setTickets] = useState<Ticket[]>(mockTickets);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [filters, setFilters] = useState<TicketFilters>({
     status: 'all',
     priority: 'all',
     assignedTo: 'all',
   });
+
+  useEffect(() => {
+    setTickets(ticketStore.getAll());
+    const unsub = ticketStore.subscribe(() => {
+      setTickets(ticketStore.getAll());
+    });
+    return unsub;
+  }, []);
 
   const filteredTickets = tickets.filter(ticket => {
     if (filters.status !== 'all' && ticket.status !== filters.status) return false;
@@ -18,43 +26,29 @@ export function useTicket() {
   });
 
   const getTicketById = useCallback((id: string) => {
-    return tickets.find(ticket => ticket.id === id);
+    return tickets.find(ticket => ticket.id === id) ?? ticketStore.getById(id) ?? null;
   }, [tickets]);
 
-  const createTicket = useCallback((ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'comments'>) => {
-    const newTicket: Ticket = {
-      ...ticketData,
-      id: `TKT-${String(tickets.length + 1).padStart(3, '0')}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      comments: [],
-    };
-    setTickets(prev => [...prev, newTicket]);
-    return newTicket;
-  }, [tickets.length]);
+  const createTicketCb = useCallback((ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'comments'>) => {
+    return createTicket(ticketData);
+  }, []);
 
-  const updateTicketStatus = useCallback((id: string, status: TicketStatus) => {
-    setTickets(prev => prev.map(ticket => 
-      ticket.id === id 
-        ? { ...ticket, status, updatedAt: new Date().toISOString() }
-        : ticket
-    ));
+  const updateTicketStatusCb = useCallback((id: string, status: TicketStatus) => {
+    return updateTicketStatus(id, status);
   }, []);
 
   const addComment = useCallback((ticketId: string, comment: Omit<TicketComment, 'id' | 'createdAt'>) => {
-    setTickets(prev => prev.map(ticket =>
-      ticket.id === ticketId
-        ? {
-            ...ticket,
-            comments: [...ticket.comments, {
-              ...comment,
-              id: `comment-${Date.now()}`,
-              createdAt: new Date().toISOString(),
-            } as TicketComment],
-            updatedAt: new Date().toISOString(),
-          }
-        : ticket
-    ));
+    const ticket = ticketStore.getById(ticketId);
+    if (!ticket) return;
+    const newComment: TicketComment = {
+      ...comment,
+      id: `comment-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    ticketStore.update(ticketId, {
+      comments: [...ticket.comments, newComment],
+      updatedAt: new Date().toISOString(),
+    } as Partial<Ticket>);
   }, []);
 
   const getMyTickets = useCallback((userId: string) => {
@@ -77,8 +71,8 @@ export function useTicket() {
     filters,
     setFilters,
     getTicketById,
-    createTicket,
-    updateTicketStatus,
+    createTicket: createTicketCb,
+    updateTicketStatus: updateTicketStatusCb,
     addComment,
     getMyTickets,
     getOverdueTickets,

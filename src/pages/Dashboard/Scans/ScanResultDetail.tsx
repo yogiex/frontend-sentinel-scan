@@ -1,43 +1,34 @@
-/**
- * SentinelScan Scan Result Detail Page
- * Path: src/pages/Dashboard/Scans/ScanResultDetail.tsx
- *
- * MVP page showing detailed vulnerability result from a scan.
- */
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SeverityChip } from '@/components/dashboard/SeverityChip';
 import { scanStore } from '@/lib/scan-store';
-import { Finding } from '@/lib/scan-store';
+import type { Finding } from '@/lib/scan-store';
+import { createTicket } from '@/lib/ticket-store';
+import { toast } from 'sonner';
 
 export function ScanResultDetail() {
   const navigate = useNavigate();
   const { scanId, vulnId } = useParams<{ scanId: string; vulnId: string }>();
+  const [showReqBody, setShowReqBody] = useState(false);
+  const [showResBody, setShowResBody] = useState(false);
 
-  // Get scan and finding from store
   const scan = scanId ? scanStore.getScan(scanId) : undefined;
   const vulnDetail: Finding | undefined = scan && vulnId
     ? scan.findings.find(f => f.id === vulnId)
     : undefined;
 
-  // Get related vulnerabilities on same host
   const relatedVulns = vulnDetail && scan
     ? scan.findings.filter(f => f.host === vulnDetail.host && f.id !== vulnDetail.id)
     : [];
 
-  // Show not found if scan or vulnerability doesn't exist
   if (!scan || !vulnDetail) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-slate-200 text-slate-500 hover:bg-slate-50"
-            onClick={() => navigate(-1)}
-          >
+          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
             ← Back to Scan
           </Button>
         </div>
@@ -48,7 +39,6 @@ export function ScanResultDetail() {
     );
   }
 
-  // Get severity color classes
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical': return 'text-red-500';
@@ -69,12 +59,27 @@ export function ScanResultDetail() {
     }
   };
 
+  const fallbackUrl = vulnDetail.url || `${vulnDetail.port === 443 ? 'https' : 'http'}://${vulnDetail.host}${vulnDetail.port && vulnDetail.port !== 80 && vulnDetail.port !== 443 ? `:${vulnDetail.port}` : ''}`;
+  const fallbackRequestHeader = vulnDetail.requestHeader || `GET / HTTP/1.1\nHost: ${vulnDetail.host}\nUser-Agent: SentinelScan/1.0\nAccept: */*`;
+  const fallbackRequestBody = vulnDetail.requestBody || '';
+  const fallbackResponseHeader = vulnDetail.responseHeader || `HTTP/1.1 200 OK\nContent-Type: text/html\nServer: nginx`;
+  const fallbackResponseBody = vulnDetail.responseBody || `<html><body>Evidence captured for finding: ${vulnDetail.title}</body></html>`;
+
+  const CodeBlock = ({ label, children }: { label: string; children: string }) => (
+    <div>
+      <p className="text-xs text-slate-400 mb-1 font-medium">{label}</p>
+      <pre className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs font-mono text-slate-700 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
+        {children || '—'}
+      </pre>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" className="border-slate-200 text-slate-500 hover:bg-slate-50" onClick={() => navigate(-1)}>
+          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
             ← Back to Scan
           </Button>
           <div>
@@ -91,10 +96,29 @@ export function ScanResultDetail() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="border-slate-200 text-slate-500 hover:bg-slate-50">
+          <Button variant="outline">
             Mark as False Positive
           </Button>
-          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+          <Button
+            variant="primary"
+            onClick={() => {
+              const ticket = createTicket({
+                vulnerabilityId: vulnDetail.id,
+                scanId: scanId || '',
+                title: vulnDetail.title,
+                description: vulnDetail.description,
+                status: 'open',
+                priority: vulnDetail.severity === 'critical' ? 'critical' : vulnDetail.severity === 'high' ? 'high' : vulnDetail.severity === 'medium' ? 'medium' : 'low',
+                assignedTo: '',
+                createdBy: 'admin',
+                dueDate: new Date(Date.now() + 7 * 86400000).toISOString(),
+                remediation: '',
+                cvssScore: vulnDetail.cvssScore,
+                cveId: vulnDetail.cveId,
+              });
+              toast.success(`Ticket ${ticket.id} created from finding`);
+            }}
+          >
             Create Ticket
           </Button>
         </div>
@@ -113,7 +137,7 @@ export function ScanResultDetail() {
             </CardContent>
           </Card>
 
-          {/* Note: Evidence, Remediation, References would come from a full vulnerability database */}
+          {/* Vulnerability Info */}
           <Card className="bg-white border-slate-200">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg text-slate-900">Vulnerability Info</CardTitle>
@@ -133,6 +157,62 @@ export function ScanResultDetail() {
                   <span className={`font-bold ${getSeverityColor(vulnDetail.severity)}`}>{vulnDetail.cvssScore}</span>
                 </div>
               )}
+              <div className="flex justify-between">
+                <span className="text-slate-500">Impacted URL</span>
+                <span className="text-slate-900 font-mono text-xs truncate max-w-[250px]" title={fallbackUrl}>{fallbackUrl}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* HTTP Traffic */}
+          <Card className="bg-white border-slate-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-slate-900">HTTP Traffic</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Request */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 mb-2">Request</h3>
+                <div className="space-y-3">
+                  <CodeBlock label="Header">{fallbackRequestHeader}</CodeBlock>
+                  <div>
+                    <button
+                      onClick={() => setShowReqBody(!showReqBody)}
+                      className="text-xs text-indigo-600 hover:text-indigo-700 font-medium mb-1"
+                    >
+                      {showReqBody ? '▾ Hide' : '▸ Show'} Body
+                    </button>
+                    {showReqBody && (
+                      <pre className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs font-mono text-slate-700 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
+                        {fallbackRequestBody || '—'}
+                      </pre>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <hr className="border-slate-200" />
+
+              {/* Response */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 mb-2">Response</h3>
+                <div className="space-y-3">
+                  <CodeBlock label="Header">{fallbackResponseHeader}</CodeBlock>
+                  <div>
+                    <button
+                      onClick={() => setShowResBody(!showResBody)}
+                      className="text-xs text-indigo-600 hover:text-indigo-700 font-medium mb-1"
+                    >
+                      {showResBody ? '▾ Hide' : '▸ Show'} Body
+                    </button>
+                    {showResBody && (
+                      <pre className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs font-mono text-slate-700 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
+                        {fallbackResponseBody || '—'}
+                      </pre>
+                    )}
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -152,6 +232,10 @@ export function ScanResultDetail() {
               <div className="flex justify-between">
                 <span className="text-slate-500">Port</span>
                 <span className="text-slate-900">{vulnDetail.port || 'N/A'}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-slate-500">URL</span>
+                <span className="text-slate-900 font-mono text-xs break-all">{fallbackUrl}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Discovered</span>

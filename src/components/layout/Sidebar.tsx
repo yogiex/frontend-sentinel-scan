@@ -6,7 +6,7 @@
  * Uses Redux to manage open/collapsed state.
  * Updated to use CSS variables for consistent theming.
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -23,7 +23,9 @@ import {
   User,
   Mail,
   Trash2,
-  Ticket
+  Ticket,
+  List,
+  Kanban,
 } from 'lucide-react';
 
 interface NavItem {
@@ -48,16 +50,39 @@ const navItems: NavItem[] = [
   },
   { path: '/dashboard/templates', label: 'Templates', icon: FileText },
   { path: '/dashboard/users', label: 'Users', icon: Users },
-  { path: '/dashboard/tickets', label: 'Tickets', icon: Ticket },
+  {
+    path: '/dashboard/tickets',
+    label: 'Tickets',
+    icon: Ticket,
+    children: [
+      { path: '/dashboard/tickets', label: 'All Tickets', icon: List },
+      { path: '/dashboard/tickets/kanban', label: 'Kanban Board', icon: Kanban },
+    ],
+  },
   { path: '/dashboard/logs', label: 'Audit Trails', icon: FileText },
   { path: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
+
+function getStoredUser() {
+  try {
+    const stored = localStorage.getItem('sentinelscan_user');
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return null;
+}
 
 export function Sidebar() {
   const dispatch = useDispatch();
   const sidebarOpen = useSelector(selectSidebarOpen);
   const location = useLocation();
-  const [expandedItems, setExpandedItems] = useState<string[]>(['/dashboard/scans']);
+  const [expandedItems, setExpandedItems] = useState<string[]>(['/dashboard/scans', '/dashboard/tickets']);
+  const [user, setUser] = useState<{ id: string; username: string; email: string; role: string } | null>(getStoredUser);
+
+  useEffect(() => {
+    const handler = () => setUser(getStoredUser());
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, []);
 
   const toggleExpand = (path: string) => {
     setExpandedItems(prev =>
@@ -359,7 +384,7 @@ export function Sidebar() {
                   boxShadow: '0 10px 15px -3px rgba(79, 70, 229, 0.2)'
                 }}
               >
-                <span className="font-bold text-lg">A</span>
+                <span className="font-bold text-lg">{(user?.username || 'A')[0].toUpperCase()}</span>
               </div>
               <div 
                 className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2"
@@ -374,7 +399,7 @@ export function Sidebar() {
                 className="text-sm font-semibold truncate"
                 style={{ color: 'var(--text-primary)' }}
               >
-                Admin
+                {user?.username || 'Guest'}
               </p>
               <div className="flex items-center gap-1 mt-1">
                 <Mail className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
@@ -382,7 +407,7 @@ export function Sidebar() {
                   className="text-xs truncate"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  admin@sentinelscan.com
+                  {user?.email || 'guest@sentinelscan.com'}
                 </p>
               </div>
             </div>
@@ -396,7 +421,7 @@ export function Sidebar() {
                 boxShadow: '0 10px 15px -3px rgba(79, 70, 229, 0.2)'
               }}
             >
-            <span className="font-bold text-lg">A</span>
+            <span className="font-bold text-lg">{(user?.username || 'A')[0].toUpperCase()}</span>
             <div 
               className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2"
               style={{ 

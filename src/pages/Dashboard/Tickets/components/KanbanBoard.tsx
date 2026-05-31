@@ -13,37 +13,32 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Clock, XCircle, CheckCircle } from 'lucide-react';
 
-// ─── Aesthetic: Light Theme Hazard Colors ───────────────────────
-export const STATUS_COLORS: Record<TicketStatus, { bg: string; border: string; accent: string; stripe: string }> = {
+// ─── Aesthetic: Light Theme Status Colors ───────────────────────
+export const STATUS_COLORS: Record<TicketStatus, { bg: string; border: string; accent: string }> = {
   open: {
-    bg: 'rgba(245, 158, 11, 0.08)',
-    border: '#f59e0b', // amber-500
-    accent: '#f59e0b', // amber-500
-    stripe: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(245, 158, 11, 0.08) 10px, rgba(245, 158, 11, 0.08) 20px)',
+    bg: 'rgba(245, 158, 11, 0.06)',
+    border: '#f59e0b',
+    accent: '#f59e0b',
   },
   in_progress: {
-    bg: 'rgba(79, 70, 229, 0.08)',
-    border: '#4f46e5', // indigo-600
-    accent: '#4f46e5', // indigo-600
-    stripe: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(79, 70, 229, 0.08) 10px, rgba(79, 70, 229, 0.08) 20px)',
+    bg: 'rgba(79, 70, 229, 0.06)',
+    border: '#4f46e5',
+    accent: '#4f46e5',
   },
   fixed: {
-    bg: 'rgba(16, 185, 129, 0.08)',
-    border: '#10b981', // emerald-500
-    accent: '#10b981', // emerald-500
-    stripe: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(16, 185, 129, 0.08) 10px, rgba(16, 185, 129, 0.08) 20px)',
+    bg: 'rgba(16, 185, 129, 0.06)',
+    border: '#10b981',
+    accent: '#10b981',
   },
   verified: {
-    bg: 'rgba(79, 70, 229, 0.08)',
-    border: '#4f46e5', // indigo-600
-    accent: '#4f46e5', // indigo-600
-    stripe: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(79, 70, 229, 0.08) 10px, rgba(79, 70, 229, 0.08) 20px)',
+    bg: 'rgba(79, 70, 229, 0.06)',
+    border: '#4f46e5',
+    accent: '#4f46e5',
   },
   wont_fix: {
-    bg: 'rgba(100, 116, 139, 0.08)',
-    border: '#64748b', // slate-500
-    accent: '#64748b', // slate-500
-    stripe: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(100, 116, 139, 0.08) 10px, rgba(100, 116, 139, 0.08) 20px)',
+    bg: 'rgba(100, 116, 139, 0.06)',
+    border: '#64748b',
+    accent: '#64748b',
   },
 };
 
@@ -98,48 +93,49 @@ export function SortableTicketCard({
         onClick={() => onTicketClick(ticket.id)}
       >
         <Card
-          className="p-3 space-y-2 border-l-4"
+          className="p-2.5 space-y-1.5 border-l-4"
           style={{
-            backgroundColor: '#ffffff',
             borderColor: priority.color,
             boxShadow: isDropTarget ? `0 0 0 2px ${priority.color}40` : '0 1px 3px rgba(0, 0, 0, 0.1)',
           }}
         >
           <div className="flex items-center justify-between">
-            <span className="font-mono text-xs font-bold text-slate-500">
+            <span className="text-[0.65rem] font-medium text-[var(--text-secondary)]">
               {ticket.id}
             </span>
             <span
-              className="font-mono text-[0.6rem] font-bold"
+              className="text-[0.6rem] font-semibold uppercase"
               style={{ color: priority.color }}
             >
-              {ticket.priority.toUpperCase()}
+              {ticket.priority}
             </span>
           </div>
 
-          <h4 className="font-bold text-sm leading-tight text-slate-900">
+          <h4 className="font-semibold text-xs leading-tight text-[var(--text-primary)]">
             {ticket.title}
           </h4>
 
-          {ticket.cvssScore && (
-            <span
-              className="font-mono text-[0.65rem] px-1.5 py-0.5 rounded-md border"
-              style={{
-                backgroundColor: ticket.cvssScore >= 7 ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
-                color: ticket.cvssScore >= 7 ? '#ef4444' : '#10b981',
-                borderColor: ticket.cvssScore >= 7 ? '#ef4444' : '#10b981',
-              }}
-            >
-              CVSS {ticket.cvssScore}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {ticket.cvssScore && (
+              <span
+                className="text-[0.6rem] px-1.5 py-0.5 rounded border"
+                style={{
+                  backgroundColor: ticket.cvssScore >= 7 ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+                  color: ticket.cvssScore >= 7 ? '#ef4444' : '#10b981',
+                  borderColor: ticket.cvssScore >= 7 ? '#ef4444' : '#10b981',
+                }}
+              >
+                CVSS {ticket.cvssScore}
+              </span>
+            )}
 
-          {isOverdue && (
-            <div className="flex items-center gap-1 text-[0.65rem] font-mono font-bold text-red-500">
-              <AlertTriangle className="w-3 h-3" />
-              OVERDUE
-            </div>
-          )}
+            {isOverdue && (
+              <span className="flex items-center gap-1 text-[0.6rem] font-semibold text-red-500">
+                <AlertTriangle className="w-2.5 h-2.5" />
+                Overdue
+              </span>
+            )}
+          </div>
         </Card>
       </div>
     </div>
@@ -162,32 +158,29 @@ export function KanbanColumn({
 
   return (
     <div
-      className="flex flex-col w-80 min-w-80 rounded-lg overflow-hidden border-2"
+      className="flex flex-col w-[260px] min-w-[260px] rounded-lg overflow-hidden border shadow-sm"
       style={{
         borderColor: colors.border,
       }}
     >
-      {/* Hazard Stripe Header */}
+      {/* Column Header */}
       <div
-        className="p-3 font-mono font-bold text-sm uppercase tracking-wider flex items-center justify-between border-b-2"
+        className="px-3 py-2.5 text-sm font-semibold flex items-center justify-between border-b"
         style={{
           backgroundColor: colors.bg,
           borderBottomColor: colors.border,
           color: colors.accent,
-          backgroundImage: colors.stripe,
-          opacity: 0.9,
         }}
       >
-        <div className="flex items-center gap-2">
-          <Icon className="w-4 h-4" />
+        <div className="flex items-center gap-1.5">
+          <Icon className="w-3.5 h-3.5" />
           {statusLabel}
         </div>
         <Badge
-          className="font-mono text-[0.7rem]"
+          className="text-[0.65rem] px-1.5 py-0"
           style={{
             backgroundColor: colors.accent,
             color: '#fff',
-            opacity: 0.7,
           }}
         >
           {tickets.length}
@@ -196,7 +189,7 @@ export function KanbanColumn({
 
       {/* Sortable Tickets List */}
       <div
-        className="flex-1 p-2 space-y-2 min-h-96 overflow-y-auto bg-white"
+        className="flex-1 p-2 space-y-2 min-h-96 overflow-y-auto bg-[var(--bg-card)]"
       >
         {tickets.map((ticket, index) => (
           <SortableTicketCard
@@ -209,9 +202,9 @@ export function KanbanColumn({
         ))}
 
         {tickets.length === 0 && (
-          <div className="text-center py-8 font-mono text-xs text-slate-500">
-            <Icon className="w-8 h-8 mx-auto mb-2" style={{ color: colors.accent }} />
-            NO {statusLabel} TICKETS
+          <div className="text-center py-8 text-xs text-[var(--text-secondary)]">
+            <Icon className="w-6 h-6 mx-auto mb-1.5" style={{ color: colors.accent }} />
+            No tickets
           </div>
         )}
       </div>
@@ -268,27 +261,26 @@ export function KanbanBoard({
       <DragOverlay>
         {activeTicket ? (
           <div
-            className="p-3 rounded-lg shadow-2xl w-72 scale-105 border-l-4"
+            className="p-3 rounded-lg shadow-2xl w-72 scale-105 border-l-4 bg-[var(--bg-card)]"
             style={{
-              backgroundColor: '#ffffff',
               borderColor: activeTicket.priority === 'critical' ? '#ef4444' :
                              activeTicket.priority === 'high' ? '#F97316' :
                              activeTicket.priority === 'medium' ? '#f59e0b' : '#10b981',
             }}
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono text-xs font-bold text-slate-500">
+              <span className="text-xs font-medium text-[var(--text-secondary)]">
                 {activeTicket.id}
               </span>
-              <span className="font-mono text-[0.6rem] font-bold" style={{
+              <span className="text-[0.6rem] font-semibold uppercase" style={{
                 color: activeTicket.priority === 'critical' ? '#ef4444' :
                        activeTicket.priority === 'high' ? '#F97316' :
                        activeTicket.priority === 'medium' ? '#f59e0b' : '#10b981',
               }}>
-                {activeTicket.priority.toUpperCase()}
+                {activeTicket.priority}
               </span>
             </div>
-            <h4 className="font-bold text-sm mt-2 text-slate-900">
+            <h4 className="font-semibold text-sm mt-2 text-[var(--text-primary)]">
               {activeTicket.title}
             </h4>
           </div>

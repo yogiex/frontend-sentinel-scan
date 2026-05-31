@@ -4,7 +4,7 @@
  */
 
 interface StatusChipProps {
-  status: 'completed' | 'running' | 'failed' | 'queued' | 'cancelled' | 'pending' | 'initializing' | 'discovering' | 'scanning' | 'analyzing';
+  status: 'completed' | 'running' | 'failed' | 'queued' | 'cancelled' | 'aborted' | 'pending' | 'initializing' | 'discovering' | 'scanning' | 'analyzing';
   showIcon?: boolean;
   size?: 'sm' | 'md' | 'lg';
 }
@@ -43,12 +43,20 @@ const statusConfig = {
     label: 'Queued',
   },
   cancelled: {
-    backgroundColor: 'rgba(100, 116, 139, 0.15)',
-    color: 'var(--text-secondary)',
-    borderColor: 'rgba(100, 116, 139, 0.3)',
-    dotColor: 'var(--text-secondary)',
-    icon: '',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    color: 'var(--warning)',
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+    dotColor: 'var(--warning)',
+    icon: '✕',
     label: 'Cancelled',
+  },
+  aborted: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    color: 'var(--danger)',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    dotColor: 'var(--danger)',
+    icon: '⚠',
+    label: 'Aborted',
   },
   pending: {
     backgroundColor: 'rgba(148, 163, 184, 0.15)',

@@ -1,10 +1,3 @@
-/**
- * SentinelScan All Scans Page
- * Path: src/pages/Dashboard/Scans/AllScans.tsx
- *
- * Displays all scans across the system with filtering, sorting, and pagination.
- * Includes loading and empty states.
- */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,8 +6,10 @@ import { StatusChip } from '@/components/dashboard/StatusChip';
 import { SeverityChip } from '@/components/dashboard/SeverityChip';
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Scan as ScanIcon } from 'lucide-react';
-import { scanStore, type Scan } from '@/lib/scan-store';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { Scan as ScanIcon, Trash2 } from 'lucide-react';
+import { scanStore, RUNNING_STATUSES, type Scan } from '@/lib/scan-store';
+import { toast } from 'sonner';
 import {
   Pagination,
   PaginationContent,
@@ -32,30 +27,33 @@ export function AllScans() {
   const [activeFilter, setActiveFilter] = useState<'all' | 'running' | 'completed' | 'failed'>('all');
   const [loading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [deleteTarget, setDeleteTarget] = useState<Scan | null>(null);
 
   useEffect(() => {
     const loadScans = () => {
       const allScans = scanStore.getScans();
       setScans(allScans);
     };
-
-    // Initial load
     loadScans();
-
-    // Subscribe to store changes
     const unsubscribe = scanStore.subscribe(loadScans);
-
     return () => unsubscribe();
   }, []);
 
-  // Reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
   }, [activeFilter]);
 
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    const user = (() => { try { const u = JSON.parse(localStorage.getItem('sentinelscan_user') || '{}'); return u.username || 'unknown'; } catch { return 'unknown'; } })();
+    scanStore.softDelete(deleteTarget.id, user);
+    toast.success(`Scan ${deleteTarget.id} moved to trash`);
+    setDeleteTarget(null);
+  };
+
   const filteredScans = scans.filter((scan) => {
     if (activeFilter === 'all') return true;
-    if (activeFilter === 'running') return ['pending', 'queued', 'initializing', 'discovering', 'scanning', 'analyzing'].includes(scan.status);
+    if (activeFilter === 'running') return RUNNING_STATUSES.includes(scan.status);
     return scan.status === activeFilter;
   });
 
@@ -75,7 +73,7 @@ export function AllScans() {
 
   const formatDuration = (scan: Scan): string => {
     if (scan.duration) return scan.duration;
-    if (scan.startedAt && scan.status !== 'completed') {
+    if (scan.startedAt && !RUNNING_STATUSES.includes(scan.status)) {
       const start = new Date(scan.startedAt).getTime();
       const now = Date.now();
       const diff = Math.floor((now - start) / 1000);
@@ -92,11 +90,8 @@ export function AllScans() {
           <h1 className="text-2xl font-bold text-slate-900">All Scans</h1>
           <p className="mt-1 text-slate-500">View and manage all vulnerability scans</p>
         </div>
-        <Button
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-          onClick={() => navigate('/dashboard/scans/new')}
-        >
-          🔍 New Scan
+        <Button variant="primary" onClick={() => navigate('/dashboard/scans/new')}>
+          New Scan
         </Button>
       </div>
 
@@ -107,14 +102,13 @@ export function AllScans() {
             key={filter}
             variant={activeFilter === filter ? 'default' : 'outline'}
             size="sm"
-            className={activeFilter === filter ? '' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}
             onClick={() => setActiveFilter(filter)}
           >
             {filter.charAt(0).toUpperCase() + filter.slice(1)}
             {filter !== 'all' && (
               <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs bg-slate-100 text-slate-600">
                 {filter === 'running'
-                  ? scans.filter(s => ['pending', 'queued', 'initializing', 'discovering', 'scanning', 'analyzing'].includes(s.status)).length
+                  ? scans.filter(s => RUNNING_STATUSES.includes(s.status)).length
                   : scans.filter(s => s.status === filter).length
                 }
               </span>
@@ -152,6 +146,7 @@ export function AllScans() {
                     <th className="text-left py-3 px-4 font-medium text-slate-500">Severity</th>
                     <th className="text-left py-3 px-4 font-medium text-slate-500">Duration</th>
                     <th className="text-left py-3 px-4 font-medium text-slate-500">Date</th>
+                    <th className="text-left py-3 px-4 font-medium text-slate-500 w-12"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -160,10 +155,10 @@ export function AllScans() {
                       key={scan.id}
                       className="border-b border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
                       onClick={() => {
-                        if (scan.status === 'completed' || scan.status === 'failed') {
-                          navigate(`/dashboard/scans/${scan.id}`);
-                        } else {
+                        if (RUNNING_STATUSES.includes(scan.status)) {
                           navigate(`/dashboard/scans/${scan.id}/progress`);
+                        } else {
+                          navigate(`/dashboard/scans/${scan.id}`);
                         }
                       }}
                     >
@@ -183,6 +178,15 @@ export function AllScans() {
                       <td className="py-3 px-4 text-slate-500">{formatDuration(scan)}</td>
                       <td className="py-3 px-4 text-slate-500">
                         {new Date(scan.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="py-3 px-4">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setDeleteTarget(scan); }}
+                          className="p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          title="Delete scan"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -228,6 +232,17 @@ export function AllScans() {
           </Pagination>
         </div>
       )}
+
+      {/* Delete Confirmation */}
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        title={`Delete Scan: ${deleteTarget?.target || ''}`}
+        description="This will move the scan to trash. You can restore it from the Trash page."
+        confirmLabel="Move to Trash"
+        variant="destructive"
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

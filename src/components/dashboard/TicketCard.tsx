@@ -32,12 +32,12 @@ export function TicketCard({ ticket, showActions = true }: TicketCardProps) {
 
   return (
     <Card 
-      className={`hover:shadow-lg transition-shadow cursor-pointer ${isOverdue ? 'border-red-500' : 'border-slate-200'}`}
+      className={`cursor-pointer hover:shadow-lg transition-shadow ${isOverdue ? 'border-red-500' : ''}`}
       onClick={() => navigate(`/dashboard/tickets/${ticket.id}`)}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <CardTitle className="text-lg text-slate-900">
+          <CardTitle className="text-lg">
             {ticket.title}
           </CardTitle>
           <div className="flex gap-2">
@@ -49,16 +49,16 @@ export function TicketCard({ ticket, showActions = true }: TicketCardProps) {
             </Badge>
           </div>
         </div>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
           {ticket.id} • CVE: {ticket.cveId || 'N/A'} • CVSS: {ticket.cvssScore || 'N/A'}
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
           {ticket.description}
         </p>
         
-        <div className="flex items-center gap-4 text-sm text-slate-500">
+        <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
           <div className="flex items-center gap-1">
             <User size={14} />
             <span>Assigned to: {ticket.assignedTo}</span>
@@ -78,7 +78,6 @@ export function TicketCard({ ticket, showActions = true }: TicketCardProps) {
               <Button
                 size="sm"
                 onClick={() => {/* TODO: update status to in_progress */}}
-                className="bg-indigo-600 text-white hover:bg-indigo-700"
               >
                 Start Working
               </Button>
@@ -96,7 +95,6 @@ export function TicketCard({ ticket, showActions = true }: TicketCardProps) {
               size="sm"
               variant="outline"
               onClick={() => navigate(`/dashboard/tickets/${ticket.id}`)}
-              className="border-slate-200 text-slate-900 hover:bg-slate-50"
             >
               View Details
             </Button>

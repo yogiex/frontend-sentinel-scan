@@ -25,22 +25,22 @@ export function TicketDetail() {
   const ticket = getTicketById(id!);
   const [newComment, setNewComment] = React.useState('');
 
-  if (!ticket) return <div className="text-center p-8 text-slate-500">Ticket not found</div>;
+  if (!ticket) return <div className="text-center p-8 text-[var(--text-secondary)]">Ticket not found</div>;
 
   const isOverdue = new Date(ticket.dueDate) < new Date() && !['fixed', 'verified', 'wont_fix'].includes(ticket.status);
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <Button variant="ghost" onClick={() => navigate('/dashboard/tickets')} className="text-slate-500 hover:text-slate-900">
+      <Button variant="ghost" onClick={() => navigate('/dashboard/tickets')} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
         <ArrowLeft className="w-4 h-4 mr-2" /> Back
       </Button>
 
-      <Card className={isOverdue ? 'border-red-500' : 'border-slate-200'}>
+      <Card className={isOverdue ? 'border-red-500' : ''}>
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-2xl text-slate-900">{ticket.title}</CardTitle>
-              <p className="text-sm mt-1 text-slate-500">{ticket.id}</p>
+              <CardTitle className="text-2xl">{ticket.title}</CardTitle>
+              <p className="text-sm mt-1 text-[var(--text-secondary)]">{ticket.id}</p>
             </div>
             <div className="flex gap-2">
               <Badge className={statusColors[ticket.status]}>{ticket.status.replace('_', ' ')}</Badge>
@@ -49,7 +49,7 @@ export function TicketDetail() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 gap-4 text-sm text-slate-500">
+          <div className="grid grid-cols-2 gap-4 text-sm text-[var(--text-secondary)]">
             <div className="flex items-center gap-2"><User className="w-4 h-4" /> Assigned to: {ticket.assignedTo}</div>
             <div className="flex items-center gap-2"><Calendar className="w-4 h-4" />
               <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>Due: {new Date(ticket.dueDate).toLocaleDateString()} {isOverdue && '(OVERDUE)'}</span>
@@ -58,32 +58,32 @@ export function TicketDetail() {
             {ticket.cvssScore && <div>CVSS: {ticket.cvssScore}</div>}
           </div>
 
-          <div><h3 className="font-semibold mb-2 text-slate-900">Description</h3>
-            <p className="text-slate-500">{ticket.description}</p></div>
+          <div><h3 className="font-semibold mb-2">Description</h3>
+            <p className="text-[var(--text-secondary)]">{ticket.description}</p></div>
 
-          {ticket.remediation && <div><h3 className="font-semibold mb-2 text-slate-900">Remediation</h3>
-            <pre className="p-4 rounded-lg text-sm bg-slate-50 text-slate-900">{ticket.remediation}</pre></div>}
+          {ticket.remediation && <div><h3 className="font-semibold mb-2">Remediation</h3>
+            <pre className="p-4 rounded-lg text-sm bg-[var(--border-light)]">{ticket.remediation}</pre></div>}
 
-          <div className="flex gap-2 pt-4 border-t border-slate-200">
-            {ticket.status === 'open' && <Button onClick={() => updateTicketStatus(ticket.id, 'in_progress')} className="bg-indigo-600 text-white hover:bg-indigo-700">Start Working</Button>}
-            {ticket.status === 'in_progress' && <Button onClick={() => updateTicketStatus(ticket.id, 'fixed')} className="bg-emerald-500 text-white hover:bg-emerald-600">Mark as Fixed</Button>}
-            {ticket.status === 'fixed' && <Button onClick={() => updateTicketStatus(ticket.id, 'verified')} className="bg-indigo-600 text-white hover:bg-indigo-700">Verify Fix</Button>}
+          <div className="flex gap-2 pt-4 border-t border-[var(--border)]">
+            {ticket.status === 'open' && <Button onClick={() => updateTicketStatus(ticket.id, 'in_progress')}>Start Working</Button>}
+            {ticket.status === 'in_progress' && <Button onClick={() => updateTicketStatus(ticket.id, 'fixed')} className="bg-emerald-600 hover:bg-emerald-700">Mark as Fixed</Button>}
+            {ticket.status === 'fixed' && <Button onClick={() => updateTicketStatus(ticket.id, 'verified')}>Verify Fix</Button>}
           </div>
         </CardContent>
       </Card>
 
-      <Card><CardHeader><CardTitle className="text-slate-900">Comments</CardTitle></CardHeader>
+      <Card><CardHeader><CardTitle>Comments</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           {ticket.comments.map(c => (
-            <div key={c.id} className="p-3 rounded-lg bg-slate-50">
-              <div className="flex items-center justify-between mb-2"><span className="font-semibold text-sm text-slate-900">{c.author}</span>
-                <span className="text-xs text-slate-500">{new Date(c.createdAt).toLocaleString()}</span></div>
-              <p className="text-sm text-slate-500">{c.message}</p>
+            <div key={c.id} className="p-3 rounded-lg bg-[var(--border-light)]">
+              <div className="flex items-center justify-between mb-2"><span className="font-semibold text-sm">{c.author}</span>
+                <span className="text-xs text-[var(--text-secondary)]">{new Date(c.createdAt).toLocaleString()}</span></div>
+              <p className="text-sm text-[var(--text-secondary)]">{c.message}</p>
             </div>
           ))}
-          <div className="space-y-2 pt-4 border-t border-slate-200">
-            <Textarea placeholder="Add a comment..." value={newComment} onChange={e => setNewComment(e.target.value)} className="bg-slate-50 text-slate-900" />
-            <Button onClick={() => { addComment(ticket.id, { author: 'current-user', message: newComment }); setNewComment(''); }} disabled={!newComment.trim()} className="bg-indigo-600 text-white hover:bg-indigo-700">Add Comment</Button>
+          <div className="space-y-2 pt-4 border-t border-[var(--border)]">
+            <Textarea placeholder="Add a comment..." value={newComment} onChange={e => setNewComment(e.target.value)} />
+            <Button onClick={() => { addComment(ticket.id, { author: 'current-user', message: newComment }); setNewComment(''); }} disabled={!newComment.trim()}>Add Comment</Button>
           </div>
         </CardContent>
       </Card>

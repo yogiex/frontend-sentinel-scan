@@ -9,7 +9,7 @@
  * - Target validation
  * - frontend-design skill compliant
  */
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -36,7 +36,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Shield, Scan, Settings, Key, Calendar, Clock, Cookie, Timer, Shuffle, FileText, AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const scanTypes = [
   { value: "basic", label: "Basic Network Scan", desc: "Standard vulnerability scan", icon: "🔍" },
@@ -163,6 +163,35 @@ export function NewScan() {
   const watchScanType = form.watch("scanType");
   const watchSchedule = form.watch("schedule");
 
+  const [searchParams] = useSearchParams();
+  const templateId = searchParams.get("template");
+  const [isRescan, setIsRescan] = useState(false);
+
+  useEffect(() => {
+    if (!templateId) return;
+    const original = scanStore.getScan(templateId);
+    if (!original) return;
+    setIsRescan(true);
+    form.setValue("target", original.target);
+    form.setValue("scanType", original.scanType);
+    form.setValue("profile", original.profile);
+    form.setValue("schedule", original.config.schedule);
+    if (original.config.scheduledDate) form.setValue("scheduledDate", original.config.scheduledDate);
+    if (original.config.scheduledTime) form.setValue("scheduledTime", original.config.scheduledTime);
+    form.setValue("useCredentials", original.config.credentials);
+    if (original.config.authType) form.setValue("authType", original.config.authType as any);
+    form.setValue("userAgentMode", original.config.userAgentMode || "random");
+    form.setValue("enableCookies", original.config.enableCookies ?? true);
+    form.setValue("humanLikeDelay", original.config.humanLikeDelay ?? true);
+    form.setValue("description", original.config.description || "");
+    if (original.config.aiAdaptability) form.setValue("aiAdaptability", original.config.aiAdaptability);
+    if (original.config.randomizeAttackOrder !== undefined) form.setValue("randomizeAttackOrder", original.config.randomizeAttackOrder);
+    if (original.config.adaptivePayloads !== undefined) form.setValue("adaptivePayloads", original.config.adaptivePayloads);
+    if (original.config.mimicHumanBehavior !== undefined) form.setValue("mimicHumanBehavior", original.config.mimicHumanBehavior);
+    if (original.config.showAIReasoning !== undefined) form.setValue("showAIReasoning", original.config.showAIReasoning);
+    setActiveTab("target");
+  }, [templateId, form]);
+
    const onSubmit = (data: FormValues) => {
      // NEW: Create scan in store instead of just console.log
      const scan = scanStore.createScan({
@@ -172,13 +201,14 @@ export function NewScan() {
        schedule: data.schedule,
        scheduledDate: data.scheduledDate,
        scheduledTime: data.scheduledTime,
-       useCredentials: data.useCredentials,
-       authType: data.authType,
-       userAgentMode: data.userAgentMode,
-       enableCookies: data.enableCookies,
-       humanLikeDelay: data.humanLikeDelay,
-       description: data.description,
-       // AI-Agentic Anti-Pattern fields
+        useCredentials: data.useCredentials,
+        authType: data.authType,
+        userAgentMode: data.userAgentMode,
+        enableCookies: data.enableCookies,
+        humanLikeDelay: data.humanLikeDelay,
+        description: data.description,
+        createdBy: (() => { try { const u = JSON.parse(localStorage.getItem('sentinelscan_user') || '{}'); return u.id || 'admin'; } catch { return 'admin'; } })(),
+        // AI-Agentic Anti-Pattern fields
        aiAdaptability: data.aiAdaptability,
        randomizeAttackOrder: data.randomizeAttackOrder,
        adaptivePayloads: data.adaptivePayloads,
@@ -203,8 +233,10 @@ export function NewScan() {
                <Shield className="w-6 h-6" style={{ color: 'var(--primary)' }} />
              </div>
              <div>
-               <h1 className="text-3xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>New Scan</h1>
-               <p style={{ color: 'var(--text-secondary)', fontSize: '1.125rem' }}>Configure and launch a vulnerability scan</p>
+                <h1 className="text-3xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>{isRescan ? 'Rescan' : 'New Scan'}</h1>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '1.125rem' }}>
+                  {isRescan ? 'Re-running scan with saved configuration' : 'Configure and launch a vulnerability scan'}
+                </p>
              </div>
            </div>
            <div className="h-px w-full" style={{ background: 'linear-gradient(to right, rgba(79, 70, 229, 0.5), rgba(79, 70, 229, 0.3), transparent)' }} />

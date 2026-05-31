@@ -12,9 +12,9 @@ import { Card } from '@/components/ui/card';
 export function TicketTable({ tickets }: { tickets: Ticket[] }) {
   if (tickets.length === 0) {
     return (
-      <Card className="p-8 text-center bg-white border-slate-200">
-        <p className="font-mono text-slate-500">
-          NO TICKETS FOUND. CREATE ONE TO GET STARTED.
+      <Card className="p-8 text-center">
+        <p className="text-sm text-[var(--text-secondary)]">
+          No tickets found. Create one to get started.
         </p>
       </Card>
     );

@@ -68,6 +68,8 @@ function statusColor(status: ScanStatus): string {
     'report-generation': 'bg-[var(--success)/20] text-[var(--success)] border-[var(--success)/30]',
     completed: 'bg-[var(--success)/20] text-[var(--success)] border-[var(--success)/30]',
     failed: 'bg-[var(--danger)/20] text-[var(--danger)] border-[var(--danger)/30]',
+    cancelled: 'bg-[var(--warning)/20] text-[var(--warning)] border-[var(--warning)/30]',
+    aborted: 'bg-[var(--danger)/20] text-[var(--danger)] border-[var(--danger)/30]',
   };
   return map[status] || '';
 }

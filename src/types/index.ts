@@ -11,3 +11,4 @@ export * from './template';
 export * from './ticket';
 export * from './auth';
 export * from './permissions';
+export * from './credential';

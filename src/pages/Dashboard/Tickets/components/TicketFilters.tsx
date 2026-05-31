@@ -24,14 +24,14 @@ export function TicketFilters({
   onPriorityChange
 }: TicketFiltersProps) {
   return (
-    <Card className="p-4 bg-white border-slate-200">
+    <Card className="p-4">
       <div className="flex items-center gap-4 flex-wrap">
-        <Filter className="w-4 h-4 text-slate-500" />
+        <Filter className="w-4 h-4 text-[var(--text-secondary)]" />
         <Select
           value={status}
           onValueChange={(v) => onStatusChange(v as TicketStatus | 'all')}
         >
-          <SelectTrigger className="w-[180px] font-mono text-xs text-slate-900">
+          <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -47,7 +47,7 @@ export function TicketFilters({
           value={priority}
           onValueChange={(v) => onPriorityChange(v as TicketPriority | 'all')}
         >
-          <SelectTrigger className="w-[180px] font-mono text-xs text-slate-900">
+          <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by priority" />
           </SelectTrigger>
           <SelectContent>

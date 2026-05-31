@@ -14,7 +14,11 @@ export type ScanStatus =
   | 'vuln-scanning'
   | 'report-generation'
   | 'completed'
-  | 'failed';
+  | 'failed'
+  | 'cancelled'
+  | 'aborted';
+
+export const RUNNING_STATUSES: ScanStatus[] = ['queued', 'host-discovery', 'port-scanning', 'service-detection', 'vuln-scanning', 'report-generation'];
 
 export type ScanType = 
   | 'basic'
@@ -43,6 +47,11 @@ export interface Finding {
   cvssScore?: number;
   host: string;
   port?: number;
+  url?: string;
+  requestHeader?: string;
+  requestBody?: string;
+  responseHeader?: string;
+  responseBody?: string;
   description: string;
   category: string;
   discoveredAt: string;
@@ -83,18 +92,108 @@ export interface Scan {
   logs: string[];
   config: ScanConfig;
   errorMessage?: string;
+  createdBy?: string;
+  deletedAt?: string | null;
+  deletedBy?: string;
 }
 
 const STORAGE_KEY = 'sentinelscan_scans';
+const SEED_KEY = 'sentinelscan_scans_seeded';
 
 interface ScanStoreState {
   scans: Map<string, Scan>;
   listeners: Set<() => void>;
 }
 
+function getSeedScans(): Scan[] {
+  const now = new Date();
+  const day = (offset: number) => new Date(now.getTime() - offset * 86400000).toISOString();
+
+  return [
+    {
+      id: 'scan-1',
+      target: 'staging.app.sentinelsec.com',
+      scanType: 'web',
+      profile: 'full',
+      status: 'completed',
+      progress: 100,
+      createdAt: day(5),
+      startedAt: day(5),
+      completedAt: day(5),
+      duration: '28m 14s',
+      createdBy: 'admin',
+      hosts: [
+        { ip: '203.0.113.10', status: 'up', openPorts: 5, vulns: 12, hostname: 'staging.app.sentinelsec.com' },
+      ],
+      findings: [
+        { id: 'finding-1', title: 'SQL Injection in Login Endpoint', severity: 'critical', cveId: 'CVE-2025-1001', cvssScore: 9.8, host: '203.0.113.10', port: 443, description: 'Time-based blind SQL injection in POST /api/auth/login email parameter. Database: PostgreSQL.', category: 'OWASP Top 10 - A03:2021', discoveredAt: day(5) },
+        { id: 'finding-2', title: 'Stored XSS in User Profile Bio', severity: 'high', cveId: 'CVE-2025-1002', cvssScore: 8.3, host: '203.0.113.10', port: 443, description: 'Unsanitized HTML in profile bio field. Payload executes when admin views user list.', category: 'OWASP Top 10 - A03:2021', discoveredAt: day(5) },
+        { id: 'finding-3', title: 'IDOR in Order History API', severity: 'high', cveId: 'CVE-2025-1003', cvssScore: 7.5, host: '203.0.113.10', port: 443, description: 'GET /api/orders/{id} returns any order without ownership check. Numeric ID enumeration possible.', category: 'OWASP Top 10 - A01:2021', discoveredAt: day(5) },
+        { id: 'finding-4', title: 'JWT Secret Key Weak', severity: 'high', cvssScore: 7.8, host: '203.0.113.10', port: 443, description: 'JWT signed with "secret" key. Tokens can be forged to impersonate any user.', category: 'Authentication', discoveredAt: day(5) },
+        { id: 'finding-5', title: 'Missing CSRF Protection on Password Change', severity: 'medium', cvssScore: 6.5, host: '203.0.113.10', port: 443, description: 'POST /api/auth/change-password lacks CSRF token. Attack can force password reset.', category: 'OWASP Top 10 - A01:2021', discoveredAt: day(5) },
+        { id: 'finding-6', title: 'Rate Limiting Bypass via X-Forwarded-For', severity: 'medium', cvssScore: 5.5, host: '203.0.113.10', port: 443, description: 'Rate limiting uses X-Forwarded-For header which can be spoofed to bypass brute-force protection.', category: 'Configuration', discoveredAt: day(5) },
+        { id: 'finding-7', title: 'Session Fixation on Login', severity: 'medium', cvssScore: 5.9, host: '203.0.113.10', port: 443, description: 'Session ID not regenerated after login. Attacker can pre-set session ID and hijack after auth.', category: 'Authentication', discoveredAt: day(5) },
+        { id: 'finding-8', title: 'Debug Endpoint Exposed', severity: 'medium', cvssScore: 5.3, host: '203.0.113.10', port: 443, description: '/api/debug/env leaks environment variables including DB_HOST, AWS_SECRET_KEY.', category: 'Information Leakage', discoveredAt: day(5) },
+        { id: 'finding-9', title: 'Weak Password Policy', severity: 'low', cvssScore: 3.1, host: '203.0.113.10', port: 443, description: 'Password policy accepts 6-character passwords. No complexity requirement.', category: 'Configuration', discoveredAt: day(5) },
+        { id: 'finding-10', title: 'Missing Content Security Policy', severity: 'low', cvssScore: 3.7, host: '203.0.113.10', port: 443, description: 'No CSP header. Possibility of data exfiltration via injected scripts.', category: 'Configuration', discoveredAt: day(5) },
+        { id: 'finding-11', title: 'Stack Trace Disclosure on 500 Error', severity: 'low', cvssScore: 2.5, host: '203.0.113.10', port: 443, description: 'Express error handler leaks full stack trace including internal IPs and file paths.', category: 'Information Leakage', discoveredAt: day(5) },
+        { id: 'finding-12', title: 'Open CORS Policy', severity: 'low', cvssScore: 3.5, host: '203.0.113.10', port: 443, description: 'Access-Control-Allow-Origin: * allows any site to read API responses.', category: 'Configuration', discoveredAt: day(5) },
+      ],
+      logs: [],
+      config: { credentials: false, stealth: false, schedule: 'now', userAgentMode: 'chrome', enableCookies: true, humanLikeDelay: true, description: 'Full OWASP Top 10 assessment on staging environment' },
+    },
+    {
+      id: 'scan-2',
+      target: 'api.sentinelsec.com',
+      scanType: 'web',
+      profile: 'full',
+      status: 'completed',
+      progress: 100,
+      createdAt: day(2),
+      startedAt: day(2),
+      completedAt: day(2),
+      duration: '42m 08s',
+      createdBy: 'user-3',
+      hosts: [
+        { ip: '203.0.113.50', status: 'up', openPorts: 3, vulns: 6, hostname: 'api.sentinelsec.com' },
+      ],
+      findings: [
+        { id: 'finding-13', title: 'GraphQL Introspection Enabled', severity: 'high', cveId: 'CVE-2025-2001', cvssScore: 7.5, host: '203.0.113.50', port: 443, description: 'GraphQL introspection queries reveal full schema including admin-only mutations.', category: 'API Security', discoveredAt: day(2) },
+        { id: 'finding-14', title: 'No Rate Limiting on REST Endpoints', severity: 'medium', cvssScore: 5.5, host: '203.0.113.50', port: 443, description: 'No rate limiting on POST /api/v2/register. Allows mass account creation.', category: 'API Security', discoveredAt: day(2) },
+        { id: 'finding-15', title: 'Mass Assignment in User Update', severity: 'high', cvssScore: 8.0, host: '203.0.113.50', port: 443, description: 'PATCH /api/v2/users allows setting role=admin via request body.', category: 'OWASP Top 10 - A01:2021', discoveredAt: day(2) },
+        { id: 'finding-16', title: 'JWT Not Validated on WebSocket Upgrade', severity: 'high', cvssScore: 7.8, host: '203.0.113.50', port: 443, description: 'WebSocket wss://api.sentinelsec.com/ws accepts any valid JWT without user-scope check.', category: 'Authentication', discoveredAt: day(2) },
+        { id: 'finding-17', title: 'API Versioning via Path Allows Deprecated Endpoints', severity: 'low', cvssScore: 3.5, host: '203.0.113.50', port: 443, description: '/api/v1/register still active — uses MD5 hashing and no rate limiting.', category: 'API Security', discoveredAt: day(2) },
+        { id: 'finding-18', title: 'Server-Side Request Forgery in Proxy Endpoint', severity: 'critical', cveId: 'CVE-2025-2002', cvssScore: 9.1, host: '203.0.113.50', port: 443, description: 'POST /api/v2/proxy/fetch accepts arbitrary URL and returns response. Can access internal services.', category: 'OWASP Top 10 - A10:2021', discoveredAt: day(2) },
+      ],
+      logs: [],
+      config: { credentials: true, authType: 'api-token', stealth: true, schedule: 'now', userAgentMode: 'random', enableCookies: true, humanLikeDelay: false, description: 'API security assessment with authenticated scanning' },
+    },
+    {
+      id: 'scan-3',
+      target: 'admin.sentinelsec.com',
+      scanType: 'web',
+      profile: 'full',
+      status: 'failed',
+      progress: 12,
+      createdAt: day(1),
+      startedAt: day(1),
+      completedAt: day(1),
+      duration: '2m 45s',
+      createdBy: 'admin',
+      hosts: [
+        { ip: '203.0.113.100', status: 'up', openPorts: 2, vulns: 0, hostname: 'admin.sentinelsec.com' },
+      ],
+      findings: [],
+      logs: [],
+      errorMessage: 'Scan blocked by WAF — target returned 403 Forbidden on all probe requests after 2 minutes.',
+      config: { credentials: false, stealth: true, schedule: 'now', userAgentMode: 'random', enableCookies: false, humanLikeDelay: true, description: 'Admin panel security scan' },
+    },
+  ];
+}
+
 class ScanStore {
   private state: ScanStoreState;
-  private nextId = 1;
+  private nextId = 4;
 
   constructor() {
     this.state = {
@@ -116,6 +215,14 @@ class ScanStore {
             this.state.scans.set(scan.id, scan);
           });
         }
+      }
+      // Seed data on first run
+      if (this.state.scans.size === 0 && !localStorage.getItem(SEED_KEY)) {
+        getSeedScans().forEach(scan => {
+          this.state.scans.set(scan.id, scan);
+        });
+        localStorage.setItem(SEED_KEY, 'true');
+        this.saveToStorage();
       }
     } catch (e) {
       console.warn('[ScanStore] Failed to load from localStorage:', e);
@@ -146,7 +253,7 @@ class ScanStore {
 
   // --- Core CRUD ---
 
-   createScan(formValues: {
+    createScan(formValues: {
     target: string;
     scanType: string;
     profile: string;
@@ -159,6 +266,7 @@ class ScanStore {
     enableCookies?: boolean;
     humanLikeDelay?: boolean;
     description?: string;
+    createdBy?: string;
     // AI-Agentic Anti-Pattern fields
     aiAdaptability?: string;
     randomizeAttackOrder?: boolean;
@@ -183,6 +291,7 @@ class ScanStore {
       hosts: [],
       findings: [],
       logs: [],
+      createdBy: formValues.createdBy || 'admin',
       config: {
         credentials: formValues.useCredentials || false,
         authType: formValues.authType,
@@ -210,15 +319,7 @@ class ScanStore {
   }
 
   getScans(): Scan[] {
-    return Array.from(this.state.scans.values()).sort(
-      (a, b) => {
-        // Sort by createdAt descending (newest first)
-        const timeDiff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        if (timeDiff !== 0) return timeDiff;
-        // Tiebreaker: sort by ID descending (higher ID = newer)
-        return b.id.localeCompare(a.id);
-      }
-    );
+    return this.getActiveScans();
   }
 
   getScan(id: string): Scan | undefined {
@@ -245,13 +346,79 @@ class ScanStore {
     return deleted;
   }
 
+  // --- Soft-delete & Trash ---
+
+  softDelete(id: string, deletedBy?: string): Scan | undefined {
+    const scan = this.state.scans.get(id);
+    if (!scan) return undefined;
+    const now = new Date().toISOString();
+    const isInProgress = RUNNING_STATUSES.includes(scan.status);
+    const updated = { ...scan, deletedAt: now, deletedBy: deletedBy || 'unknown', status: isInProgress ? 'failed' as ScanStatus : scan.status } as Scan;
+    this.state.scans.set(id, updated);
+    this.saveToStorage();
+    this.notify();
+    return updated;
+  }
+
+  restore(id: string): Scan | undefined {
+    const scan = this.state.scans.get(id);
+    if (!scan) return undefined;
+    const updated = { ...scan, deletedAt: null, deletedBy: undefined } as Scan;
+    this.state.scans.set(id, updated);
+    this.saveToStorage();
+    this.notify();
+    return updated;
+  }
+
+  getTrashedScans(): Scan[] {
+    return Array.from(this.state.scans.values())
+      .filter(s => s.deletedAt != null)
+      .sort((a, b) => new Date(b.deletedAt!).getTime() - new Date(a.deletedAt!).getTime());
+  }
+
+  permanentDelete(id: string): boolean {
+    const deleted = this.state.scans.delete(id);
+    if (deleted) {
+      this.saveToStorage();
+      this.notify();
+    }
+    return deleted;
+  }
+
+  getActiveScans(): Scan[] {
+    return Array.from(this.state.scans.values())
+      .filter(s => s.deletedAt == null)
+      .sort((a, b) => {
+        const timeDiff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        if (timeDiff !== 0) return timeDiff;
+        return b.id.localeCompare(a.id);
+      });
+  }
+
+  getScansByTarget(target: string): Scan[] {
+    return Array.from(this.state.scans.values())
+      .filter(s => s.deletedAt == null && s.target === target)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  cancelScan(id: string): Scan | undefined {
+    const scan = this.state.scans.get(id);
+    if (!scan) return undefined;
+    const updated = { ...scan, status: 'cancelled' as ScanStatus, completedAt: new Date().toISOString() };
+    this.state.scans.set(id, updated);
+    this.saveToStorage();
+    this.notify();
+    return updated;
+  }
+
   // --- Testing utility ---
 
   clearAll(): void {
     this.state.scans.clear();
-    this.nextId = 1;
+    this.nextId = 4;
      try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(SEED_KEY);
     } catch {
       // ignore
     }

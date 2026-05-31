@@ -7,9 +7,10 @@
  */
 
 import type { ScanJob, ScanResult, CreateScanRequest, Template, ScanEvent } from '../types';
-
-
-
+import type { Ticket, TicketStatus } from '../types/ticket';
+import type { AuthCredential } from '../types/credential';
+import { ticketStore, createTicket } from '../lib/ticket-store';
+import { credentialStore, createCredential } from '../lib/credential-store';
 
 export const apiClient = {
   async createScan(request: CreateScanRequest): Promise<ScanJob> {
@@ -114,5 +115,48 @@ export const apiClient = {
     return {
       close: () => clearInterval(interval),
     } as unknown as WebSocket;
+  },
+
+  // --- Ticket methods ---
+
+  async getTickets(): Promise<Ticket[]> {
+    return ticketStore.getAll();
+  },
+
+  async getTicket(id: string): Promise<Ticket | null> {
+    return ticketStore.getById(id) ?? null;
+  },
+
+  async createTicket(data: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'comments'>): Promise<Ticket> {
+    return createTicket(data);
+  },
+
+  async updateTicketStatus(id: string, status: TicketStatus): Promise<Ticket | null> {
+    return ticketStore.update(id, { status, updatedAt: new Date().toISOString() } as Partial<Ticket>) ?? null;
+  },
+
+  async addTicketComment(ticketId: string, author: string, message: string): Promise<Ticket | null> {
+    const ticket = ticketStore.getById(ticketId);
+    if (!ticket) return null;
+    const newComment = { id: `comment-${Date.now()}`, author, message, createdAt: new Date().toISOString() };
+    return ticketStore.update(ticketId, { comments: [...ticket.comments, newComment], updatedAt: new Date().toISOString() } as Partial<Ticket>) ?? null;
+  },
+
+  // --- Auth Credential methods ---
+
+  async getCredentials(): Promise<AuthCredential[]> {
+    return credentialStore.getAll();
+  },
+
+  async getCredential(id: string): Promise<AuthCredential | null> {
+    return credentialStore.getById(id) ?? null;
+  },
+
+  async createCredential(data: Omit<AuthCredential, 'id' | 'createdAt' | 'updatedAt'>): Promise<AuthCredential> {
+    return createCredential(data);
+  },
+
+  async deleteCredential(id: string): Promise<boolean> {
+    return credentialStore.delete(id);
   },
 };
