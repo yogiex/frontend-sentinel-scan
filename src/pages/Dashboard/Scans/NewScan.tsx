@@ -76,7 +76,7 @@ const newScanSchema = z.object({
     (val) => {
       // Accept IP, CIDR, hostname, URL
       const ipRegex = /^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$/;
-      const hostnameRegex = /^[a-zA-Z0-9][-a-zA-Z0-9]*[a-zA-Z0-9]?\.[a-zA-Z]{2,}$/;
+      const hostnameRegex = /^(?=.{1,253}$)[a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?)+\.[a-zA-Z]{2,}$/;
       const urlRegex = /^https?:\/\/.+/;
       return ipRegex.test(val) || hostnameRegex.test(val) || urlRegex.test(val) || val === "localhost";
     },
@@ -195,26 +195,27 @@ export function NewScan() {
    const onSubmit = (data: FormValues) => {
      // NEW: Create scan in store instead of just console.log
      const scan = scanStore.createScan({
-       target: data.target,
-       scanType: data.scanType,
-       profile: data.profile,
-       schedule: data.schedule,
-       scheduledDate: data.scheduledDate,
-       scheduledTime: data.scheduledTime,
-        useCredentials: data.useCredentials,
-        authType: data.authType,
-        userAgentMode: data.userAgentMode,
-        enableCookies: data.enableCookies,
-        humanLikeDelay: data.humanLikeDelay,
-        description: data.description,
-        createdBy: (() => { try { const u = JSON.parse(localStorage.getItem('sentinelscan_user') || '{}'); return u.id || 'admin'; } catch { return 'admin'; } })(),
-        // AI-Agentic Anti-Pattern fields
-       aiAdaptability: data.aiAdaptability,
-       randomizeAttackOrder: data.randomizeAttackOrder,
-       adaptivePayloads: data.adaptivePayloads,
-       mimicHumanBehavior: data.mimicHumanBehavior,
-       showAIReasoning: data.showAIReasoning,
-     });
+        target: data.target,
+        scanType: data.scanType,
+        profile: data.profile,
+        schedule: data.schedule,
+        scheduledDate: data.scheduledDate,
+        scheduledTime: data.scheduledTime,
+         useCredentials: data.useCredentials,
+         authType: data.authType,
+         userAgentMode: data.userAgentMode,
+         enableCookies: data.enableCookies,
+         humanLikeDelay: data.humanLikeDelay,
+         description: data.description,
+         createdBy: (() => { try { const u = JSON.parse(localStorage.getItem('sentinelscan_user') || '{}'); return u.id || 'admin'; } catch { return 'admin'; } })(),
+         sourceScanId: isRescan ? (templateId ?? undefined) : undefined,
+         // AI-Agentic Anti-Pattern fields
+        aiAdaptability: data.aiAdaptability,
+        randomizeAttackOrder: data.randomizeAttackOrder,
+        adaptivePayloads: data.adaptivePayloads,
+        mimicHumanBehavior: data.mimicHumanBehavior,
+        showAIReasoning: data.showAIReasoning,
+      });
 
     // Navigate to progress page instead of all scans
     navigate(`/dashboard/scans/${scan.id}/progress`);

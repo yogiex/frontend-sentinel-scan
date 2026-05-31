@@ -28,9 +28,8 @@ export function ScanDetail() {
       const found = scanStore.getScan(id);
       setScan(found);
       if (found) {
-        const all = scanStore.getScansByTarget(found.target)
-          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-        setScanHistory(all);
+        const history = scanStore.getScanHistory(found.scanGroupId);
+        setScanHistory(history);
       }
     };
     loadScan();
@@ -117,7 +116,7 @@ export function ScanDetail() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Scan Details</h1>
-            <p className="text-slate-500 mt-1 font-mono text-sm">{scan.id} &bull; {scan.target}</p>
+            <p className="text-slate-500 mt-1 font-mono text-sm">Run #{scan.runNumber} &bull; {scan.id} &bull; {scan.target}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -346,6 +345,7 @@ export function ScanDetail() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-200">
+                      <th className="text-left py-2 px-4 text-slate-500 font-medium">#</th>
                       <th className="text-left py-2 px-4 text-slate-500 font-medium">Date</th>
                       <th className="text-left py-2 px-4 text-slate-500 font-medium">Status</th>
                       <th className="text-center py-2 px-2 text-slate-500 font-medium">Critical</th>
@@ -358,21 +358,44 @@ export function ScanDetail() {
                     </tr>
                   </thead>
                   <tbody>
-                    {scanHistory.map((h) => {
+                    {scanHistory.map((h, idx) => {
                       const c = h.findings.filter(f => f.severity === 'critical').length;
                       const hi = h.findings.filter(f => f.severity === 'high').length;
                       const m = h.findings.filter(f => f.severity === 'medium').length;
                       const l = h.findings.filter(f => f.severity === 'low').length;
                       const inf = h.findings.filter(f => f.severity === 'info').length;
                       const isCurrent = h.id === scan.id;
+                      const isRescanRun = !!h.sourceScanId;
+                      const prevScan = h.sourceScanId ? scanStore.getScan(h.sourceScanId) : undefined;
+                      const nextRuns = scanHistory.filter(s => s.sourceScanId === h.id);
                       return (
                         <tr
                           key={h.id}
                           className={`border-b border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer ${isCurrent ? 'bg-indigo-50 border-l-2 border-l-indigo-500' : ''}`}
                           onClick={() => { setActiveTab('detail'); navigate(`/dashboard/scans/${h.id}`); }}
                         >
-                          <td className="py-2 px-4 text-slate-500">{new Date(h.createdAt).toLocaleDateString()}</td>
-                          <td className="py-2 px-4"><StatusChip status={h.status as any} size="sm" /></td>
+                          <td className="py-2 px-4">
+                            <span className="font-mono text-sm text-slate-700">#{h.runNumber}</span>
+                          </td>
+                          <td className="py-2 px-4 text-slate-500">
+                            <div>{new Date(h.createdAt).toLocaleDateString()}</div>
+                            <div className="text-xs text-slate-400">{new Date(h.createdAt).toLocaleTimeString()}</div>
+                          </td>
+                          <td className="py-2 px-4">
+                            <div className="flex flex-col gap-0.5">
+                              <StatusChip status={h.status as any} size="sm" />
+                              {isRescanRun && (
+                                <span className="text-xs text-slate-400 italic mt-0.5">
+                                  ← <button className="hover:text-indigo-500 hover:underline" onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/scans/${h.sourceScanId}`); }}>Run #{prevScan?.runNumber || '?'}</button>
+                                </span>
+                              )}
+                              {nextRuns.length > 0 && (
+                                <span className="text-xs text-slate-400 italic mt-0.5">
+                                  → {nextRuns.length} rescan{nextRuns.length > 1 ? 's' : ''}
+                                </span>
+                              )}
+                            </div>
+                          </td>
                           <td className={`text-center py-2 px-2 font-semibold ${c > 0 ? 'text-red-500' : 'text-slate-300'}`}>{c}</td>
                           <td className={`text-center py-2 px-2 font-semibold ${hi > 0 ? 'text-orange-500' : 'text-slate-300'}`}>{hi}</td>
                           <td className={`text-center py-2 px-2 font-semibold ${m > 0 ? 'text-amber-500' : 'text-slate-300'}`}>{m}</td>
@@ -395,7 +418,7 @@ export function ScanDetail() {
             <Card className="bg-white border-slate-200">
               <CardContent className="p-8 text-center">
                 <h2 className="text-xl font-semibold text-slate-900 mb-2">No History</h2>
-                <p className="text-slate-500">No previous scans found for this target.</p>
+                <p className="text-slate-500">No previous scan runs found for this instance.</p>
               </CardContent>
             </Card>
           )}

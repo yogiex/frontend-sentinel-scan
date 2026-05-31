@@ -78,6 +78,9 @@ export interface Finding {
 
 export interface Scan {
   id: string;
+  scanGroupId: string;
+  sourceScanId?: string;
+  runNumber: number;
   target: string;
   scanType: ScanType;
   profile: ScanProfile;
@@ -112,6 +115,8 @@ function getSeedScans(): Scan[] {
   return [
     {
       id: 'scan-1',
+      scanGroupId: 'scan-1',
+      runNumber: 1,
       target: 'staging.app.sentinelsec.com',
       scanType: 'web',
       profile: 'full',
@@ -144,6 +149,8 @@ function getSeedScans(): Scan[] {
     },
     {
       id: 'scan-2',
+      scanGroupId: 'scan-2',
+      runNumber: 1,
       target: 'api.sentinelsec.com',
       scanType: 'web',
       profile: 'full',
@@ -170,6 +177,8 @@ function getSeedScans(): Scan[] {
     },
     {
       id: 'scan-3',
+      scanGroupId: 'scan-3',
+      runNumber: 1,
       target: 'admin.sentinelsec.com',
       scanType: 'web',
       profile: 'full',
@@ -267,6 +276,7 @@ class ScanStore {
     humanLikeDelay?: boolean;
     description?: string;
     createdBy?: string;
+    sourceScanId?: string;
     // AI-Agentic Anti-Pattern fields
     aiAdaptability?: string;
     randomizeAttackOrder?: boolean;
@@ -277,8 +287,24 @@ class ScanStore {
     const id = `scan-${this.nextId++}`;
     const now = new Date().toISOString();
 
+    // Determine scanGroupId and runNumber
+    let scanGroupId: string;
+    let runNumber: number;
+    if (formValues.sourceScanId) {
+      const source = this.state.scans.get(formValues.sourceScanId);
+      scanGroupId = source?.scanGroupId || id;
+      const existingRuns = this.getScanHistory(scanGroupId);
+      runNumber = existingRuns.length + 1;
+    } else {
+      scanGroupId = id;
+      runNumber = 1;
+    }
+
     const scan: Scan = {
       id,
+      scanGroupId,
+      sourceScanId: formValues.sourceScanId,
+      runNumber,
       target: formValues.target,
       scanType: formValues.scanType as ScanType,
       profile: formValues.profile as ScanProfile,
@@ -409,6 +435,38 @@ class ScanStore {
     this.saveToStorage();
     this.notify();
     return updated;
+  }
+
+  // --- Scan Group / History ---
+
+  getScanHistory(scanGroupId: string): Scan[] {
+    return Array.from(this.state.scans.values())
+      .filter(s => s.scanGroupId === scanGroupId && s.deletedAt == null)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }
+
+  getLatestScan(scanGroupId: string): Scan | undefined {
+    const runs = this.getScanHistory(scanGroupId);
+    return runs.length > 0 ? runs[runs.length - 1] : undefined;
+  }
+
+  getScanInstances(): { groupId: string; target: string; lastRun: Scan; runCount: number }[] {
+    const all = this.getActiveScans();
+    const groups = new Map<string, Scan[]>();
+    for (const scan of all) {
+      const list = groups.get(scan.scanGroupId) || [];
+      list.push(scan);
+      groups.set(scan.scanGroupId, list);
+    }
+    return Array.from(groups.entries()).map(([groupId, runs]) => {
+      runs.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      return {
+        groupId,
+        target: runs[0].target,
+        lastRun: runs[runs.length - 1],
+        runCount: runs.length,
+      };
+    }).sort((a, b) => new Date(b.lastRun.createdAt).getTime() - new Date(a.lastRun.createdAt).getTime());
   }
 
   // --- Testing utility ---

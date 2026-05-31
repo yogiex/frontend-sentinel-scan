@@ -19,10 +19,7 @@ vi.mock('react-router-dom', () => ({
 
 describe('ScanDetail', () => {
   beforeEach(() => {
-    // @ts-ignore - accessing private field for testing
-    scanStore.scans = [];
-    // @ts-ignore
-    scanStore.nextId = 1;
+    scanStore.clearAll();
     
     // Reset mock to default
     mockUseParams.mockReturnValue({ id: 'scan-1' });
