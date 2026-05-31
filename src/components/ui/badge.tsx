@@ -1,9 +1,8 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
-
-/* eslint-disable react-refresh/only-export-components */
 
 const badgeVariants = cva(
   "inline-flex items-center rounded-none border-2 px-2.5 py-0.5 text-xs font-bold font-mono uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[var(--text-primary)] focus:ring-offset-2",

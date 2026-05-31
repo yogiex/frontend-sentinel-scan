@@ -358,7 +358,7 @@ export function ScanDetail() {
                     </tr>
                   </thead>
                   <tbody>
-                    {scanHistory.map((h, idx) => {
+                    {scanHistory.map((h) => {
                       const c = h.findings.filter(f => f.severity === 'critical').length;
                       const hi = h.findings.filter(f => f.severity === 'high').length;
                       const m = h.findings.filter(f => f.severity === 'medium').length;

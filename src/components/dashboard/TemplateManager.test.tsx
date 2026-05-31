@@ -11,7 +11,7 @@ describe('TemplateManager', () => {
     const mockTemplates = [
       { id: 1, name: 'Test Template', severity: 'high', tags: ['web'], content: '', version: '1.0', createdAt: '' },
     ];
-    (apiClient.getTemplates as any).mockResolvedValueOnce(mockTemplates);
+    vi.mocked(apiClient.getTemplates).mockResolvedValueOnce(mockTemplates);
 
     render(<TemplateManager />);
     expect(await screen.findByText('Test Template')).toBeInTheDocument();

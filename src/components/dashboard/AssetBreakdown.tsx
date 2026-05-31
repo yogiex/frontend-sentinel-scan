@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * SentinelScan Asset Breakdown Component
  * Donut chart showing asset distribution by type
@@ -50,7 +49,7 @@ export function AssetBreakdown({ categories }: AssetBreakdownProps) {
                 borderRadius: '8px',
                 color: 'var(--text-primary)',
               }}
-              // @ts-ignore - Recharts type definition issue
+              // @ts-expect-error - Recharts type definition issue
               formatter={(value: number) => [`${value} assets`, 'Count']}
             />
           </PieChart>

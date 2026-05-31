@@ -4,7 +4,7 @@
  *
  * Light theme using Slate & Indigo palette
  */
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { FileText, AlertOctagon } from 'lucide-react';
@@ -31,18 +31,18 @@ export function LogViewer() {
   const loading = useSelector(selectLoading);
 
   // Load logs based on active tab
-  const loadLogs = () => {
+  const loadLogs = useCallback(() => {
     dispatch(setLoading(true));
     const entries = activeTab === 'access' 
       ? auditLogger.getAccessLogs() 
       : auditLogger.getErrorLogs();
     dispatch(loadEntries(entries));
     dispatch(setLoading(false));
-  };
+  }, [activeTab, dispatch]);
 
   useEffect(() => {
     loadLogs();
-  }, [activeTab, dispatch]);
+  }, [loadLogs]);
 
   const handleLevelChange = (level: LogLevel | 'all') => {
     setLevelFilter(level);

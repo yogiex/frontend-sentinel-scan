@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { CategoryIcon } from './CategoryIcon';
 import type { AuditCategory } from '@/lib/logger';
 

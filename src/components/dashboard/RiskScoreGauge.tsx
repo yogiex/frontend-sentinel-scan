@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * SentinelScan Risk Score Gauge Component
  * Displays security posture score (0-100) with grade and trend
@@ -50,8 +49,8 @@ export function RiskScoreGauge({ score, grade, trend }: RiskScoreGaugeProps) {
             endAngle={-180}
           >
             <RadialBar
-              // @ts-ignore - Recharts type definition issue
               background={{ fill: 'var(--bg-secondary)' }}
+              // @ts-expect-error - Recharts type definitions missing clockwise prop
               clockwise
               dataKey="value"
               cornerRadius={10}

@@ -133,7 +133,7 @@ function useTimeEstimation(scan: Scan | null) {
     }, 1000);
     
     return () => clearInterval(interval);
-  }, [scan?.status, scan?.startedAt, scan?.progress]);
+  }, [scan, scan?.status, scan?.startedAt, scan?.progress]);
 
   return { elapsed, eta };
 }
@@ -163,7 +163,10 @@ export function ScanProgress() {
   useEffect(() => {
     if (!id) return;
     const s = scanStore.getScan(id);
-    if (s) setScan(s);
+    if (s) {
+      const timer = setTimeout(() => setScan(s), 0);
+      return () => clearTimeout(timer);
+    }
   }, [id]);
 
   // Subscribe to store updates
@@ -205,9 +208,10 @@ export function ScanProgress() {
 
   useEffect(() => {
     if (scan && scan.status === 'queued' && !isSimulating) {
-      startSimulation();
+      const timer = setTimeout(() => startSimulation(), 0);
+      return () => clearTimeout(timer);
     }
-  }, [scan?.id, scan?.status]);
+  }, [scan?.id, scan?.status, scan, isSimulating, startSimulation]);
 
   // Auto-redirect on complete
   useEffect(() => {

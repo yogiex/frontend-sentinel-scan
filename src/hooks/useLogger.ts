@@ -25,15 +25,16 @@ export function useLogger(options: UseLoggerOptions = {}) {
 
   // Log mount/unmount
   useEffect(() => {
+    const name = componentName.current;
     if (logMount) {
-      logger.componentMount(componentName.current);
+      logger.componentMount(name);
     }
     return () => {
       if (logUnmount) {
-        logger.componentUnmount(componentName.current);
+        logger.componentUnmount(name);
       }
     };
-  }, []);
+  }, [logMount, logUnmount, logger]);
 
   const log = useCallback(
     (level: AppLogLevel, module: AppLogModule, message: string, data?: Record<string, unknown>) => {
