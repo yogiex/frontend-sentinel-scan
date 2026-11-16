@@ -1,52 +1,51 @@
-/**
- * SentinelScan DashboardIndex Tests
- * Path: src/pages/Dashboard/Index.test.tsx
- */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import { BrowserRouter } from 'react-router-dom';
+import '@testing-library/jest-dom/vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { DashboardIndex } from './Index';
+import { scanStore } from '@/lib/scan-store';
+
+function renderPage() {
+  return render(
+    <MemoryRouter>
+      <DashboardIndex />
+    </MemoryRouter>,
+  );
+}
 
 describe('DashboardIndex', () => {
-  it('renders dashboard title', () => {
-    render(
-      <BrowserRouter>
-        <DashboardIndex />
-      </BrowserRouter>
-    );
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Vulnerability scanner overview and security posture')).toBeInTheDocument();
+  beforeEach(() => {
+    localStorage.clear();
+    scanStore.clearAll();
   });
 
-  it('renders stats cards', () => {
-    render(
-      <BrowserRouter>
-        <DashboardIndex />
-      </BrowserRouter>
-    );
-    expect(screen.getAllByText('Total Assets').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Vulnerabilities').length).toBeGreaterThan(0);
-    expect(screen.getByText('Resolved')).toBeInTheDocument();
+  it('renders the overview heading and description', () => {
+    renderPage();
+    expect(screen.getByRole('heading', { level: 1, name: 'Overview' })).toBeInTheDocument();
+    expect(screen.getByText(/Scan coverage, open findings/)).toBeInTheDocument();
   });
 
-  it('renders recent scans table', () => {
-    render(
-      <BrowserRouter>
-        <DashboardIndex />
-      </BrowserRouter>
-    );
-    expect(screen.getByText('Recent Scans')).toBeInTheDocument();
-    expect(screen.getAllByText('192.168.1.0/24').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('example.com').length).toBeGreaterThan(0);
+  it('renders the KPI strip with derived figures', () => {
+    renderPage();
+    expect(screen.getByText('Scans')).toBeInTheDocument();
+    expect(screen.getByText('Findings')).toBeInTheDocument();
+    expect(screen.getByText('Critical')).toBeInTheDocument();
+    expect(screen.getByText('Hosts')).toBeInTheDocument();
   });
 
-  it('renders vulnerability chart section', () => {
-    render(
-      <BrowserRouter>
-        <DashboardIndex />
-      </BrowserRouter>
-    );
-    expect(screen.getByText('Scan Trend')).toBeInTheDocument();
+  it('shows an empty state when no scan is running', () => {
+    renderPage();
+    expect(screen.getByText('No scans running')).toBeInTheDocument();
+  });
+
+  it('renders the recent scans section', () => {
+    renderPage();
+    expect(screen.getByRole('heading', { name: 'Recent scans' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Findings by severity' })).toBeInTheDocument();
+  });
+
+  it('offers a primary action to start a scan', () => {
+    renderPage();
+    expect(screen.getAllByRole('button', { name: /New scan/ }).length).toBeGreaterThan(0);
   });
 });

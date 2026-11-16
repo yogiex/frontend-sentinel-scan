@@ -82,17 +82,17 @@ function getFindingsForScanType(scanType: ScanType): Array<{
   switch (scanType) {
     case 'web':
     case 'advanced':
-      return WEB_FINDINGS as any;
+      return WEB_FINDINGS;
     case 'basic':
-      return BASIC_FINDINGS as any;
+      return BASIC_FINDINGS;
     case 'credentialed':
-      return CREDENTIALED_FINDINGS as any;
+      return CREDENTIALED_FINDINGS;
     case 'compliance':
-      return COMPLIANCE_FINDINGS as any;
+      return COMPLIANCE_FINDINGS;
     case 'discovery':
-      return DISCOVERY_FINDINGS as any;
+      return DISCOVERY_FINDINGS;
     default:
-      return BASIC_FINDINGS as any;
+      return BASIC_FINDINGS;
   }
 }
 

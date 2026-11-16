@@ -4,7 +4,6 @@
  */
 import { describe, it, expect } from 'vitest';
 import { generateFindings, generateHosts } from './finding-generator';
-import type { ScanType } from './scan-store';
 
 describe('FindingGenerator', () => {
   it('should generate findings for web scan type', () => {
@@ -32,11 +31,12 @@ describe('FindingGenerator', () => {
     const webFindings = generateFindings('web', hosts, 'example.com');
     const basicFindings = generateFindings('basic', hosts, 'example.com');
 
-    // Different scan types should have different finding pools
+    // Different scan types should produce their own finding pools
     const webTitles = webFindings.map((f) => f.title);
     const basicTitles = basicFindings.map((f) => f.title);
-    
-    // There should be some difference (not guaranteed to be completely different, but likely)
+
+    expect(webTitles.length).toBeGreaterThan(0);
+    expect(basicTitles.length).toBeGreaterThan(0);
     expect(webFindings.length).toBeGreaterThan(0);
     expect(basicFindings.length).toBeGreaterThan(0);
   });

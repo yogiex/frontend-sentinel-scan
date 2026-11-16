@@ -4,7 +4,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { store } from './index';
-import { toggleSidebar, setTheme, addNotification } from './slices/uiSlice';
+import { toggleSidebar, setTheme } from './slices/uiSlice';
 import { mockLogin } from './slices/authSlice';
 
 describe('Redux Store', () => {

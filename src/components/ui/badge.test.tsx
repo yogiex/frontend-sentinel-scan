@@ -1,37 +1,28 @@
-import { render, screen } from "@testing-library/react"
-import { Badge } from "./badge"
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
+import { Badge } from './badge';
 
-describe("Badge - Brutalist Style", () => {
-  it("renders with rounded-none and border-2", () => {
-    render(<Badge>Badge text</Badge>)
-    const badge = screen.getByText("Badge text")
-    expect(badge).toHaveClass("rounded-none")
-    expect(badge).toHaveClass("border-2")
-    expect(badge).toHaveClass("font-mono")
-  })
+describe('Badge', () => {
+  it('renders its text', () => {
+    render(<Badge>3 overdue</Badge>);
+    expect(screen.getByText('3 overdue')).toBeInTheDocument();
+  });
 
-  it("uses text-primary for default variant", () => {
-    render(<Badge>Default</Badge>)
-    const badge = screen.getByText("Default")
-    expect(badge).toHaveClass("bg-[var(--text-primary)]")
-  })
+  it('no longer relies on all-caps or heavy borders', () => {
+    render(<Badge>open</Badge>);
+    const el = screen.getByText('open');
+    expect(el.className).not.toMatch(/uppercase/);
+    expect(el.className).not.toMatch(/border-2/);
+  });
 
-  it("uses uppercase text", () => {
-    render(<Badge>Lowercase</Badge>)
-    const badge = screen.getByText("Lowercase")
-    expect(badge).toHaveClass("uppercase")
-  })
+  it('applies the destructive variant', () => {
+    render(<Badge variant="destructive">critical</Badge>);
+    expect(screen.getByText('critical')).toHaveClass('bg-[var(--risk-high)]');
+  });
 
-  it("renders destructive variant correctly", () => {
-    render(<Badge variant="destructive">Error</Badge>)
-    const badge = screen.getByText("Error")
-    expect(badge).toHaveClass("bg-[var(--danger)]")
-  })
-
-  it("renders outline variant correctly", () => {
-    render(<Badge variant="outline">Outline</Badge>)
-    const badge = screen.getByText("Outline")
-    expect(badge).toHaveClass("bg-transparent")
-    expect(badge).toHaveClass("border-[var(--text-primary)]")
-  })
-})
+  it('applies the outline variant', () => {
+    render(<Badge variant="outline">info</Badge>);
+    expect(screen.getByText('info')).toHaveClass('border-[var(--rule-strong)]');
+  });
+});

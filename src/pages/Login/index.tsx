@@ -1,352 +1,217 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import {
-  Loader2,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  ShieldCheck,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
+import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { FormField } from '@/shared/ui/FormField';
 import { useAppDispatch } from '@/store';
 import { mockLogin } from '@/store/slices/authSlice';
 
 const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  email: z.string().min(1, 'Enter your email').email('Enter a valid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
   rememberMe: z.boolean().optional(),
 });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+type LoginValues = z.infer<typeof loginSchema>;
 
-function LoginForm() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+export default function LoginPage() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const form = useForm<LoginFormValues>({
+  const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "", rememberMe: false },
+    mode: 'onTouched',
+    defaultValues: { email: '', password: '', rememberMe: false },
   });
 
-  const handlePasswordToggle = () => {
-    setShowPassword(!showPassword);
-  };
+  const nextPath = (location.state as { from?: string } | null)?.from ?? '/dashboard';
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handlePasswordToggle();
-    }
-  };
-
-  async function onSubmit(values: LoginFormValues) {
-    setIsLoading(true);
+  async function onSubmit(values: LoginValues) {
+    setSubmitting(true);
     setError(null);
-
     try {
-      await dispatch(mockLogin({
-        username: values.email,
-        password: values.password,
-      })).unwrap();
-
-      if (values.rememberMe) {
-        localStorage.setItem("rememberMe", "true");
-      } else {
-        localStorage.removeItem("rememberMe");
-      }
-
-      navigate("/dashboard");
+      await dispatch(
+        mockLogin({ username: values.email, password: values.password }),
+      ).unwrap();
+      navigate(nextPath, { replace: true });
     } catch (err) {
-      setError(typeof err === 'string' ? err : "Authentication failed. Please check your credentials and try again, or contact support if the issue persists.");
+      setError(typeof err === 'string' ? err : 'Sign in failed. Check your email and password.');
     } finally {
-      setIsLoading(false);
+      setSubmitting(false);
     }
   }
 
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    }
-    return false;
-  });
-  
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
-
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-        {/* Error Alert */}
-        {error && (
-          <div
-            role="alert"
-            aria-live="polite"
-            className="p-4 rounded-xl border"
-            style={{ borderColor: 'var(--danger)', backgroundColor: 'rgba(239, 68, 68, 0.08)', color: 'var(--danger)' }}
+    <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+      {/* Kiri: pernyataan produk + jejak mesin */}
+      <aside className="hidden flex-col justify-between border-r border-[var(--rule)] bg-[var(--surface)] p-10 lg:flex">
+        <div className="flex items-center gap-2">
+          <span className="flex size-7 items-center justify-center rounded-sm bg-[var(--ink)] text-xs font-semibold text-white">
+            S
+          </span>
+          <span className="text-sm font-semibold text-[var(--ink)]">SentinelScan</span>
+        </div>
+
+        <div className="max-w-[46ch]">
+          <h1 className="text-3xl font-semibold leading-tight text-[var(--ink)]">
+            Every finding keeps its evidence.
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-[var(--steel)]">
+            Scan the perimeter, open each result down to the raw request and response, and hand the
+            fix to the team that owns it.
+          </p>
+
+          <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-[var(--rule)] bg-[var(--rule)]">
+            {[
+              { k: 'Engines', v: 'Nmap · OpenVAS · Nikto' },
+              { k: 'Evidence', v: 'HTTP req/res' },
+              { k: 'Findings', v: 'CVE + CVSS' },
+              { k: 'Audit', v: 'append-only log' },
+            ].map((row) => (
+              <div key={row.k} className="bg-[var(--paper)] px-3 py-2.5">
+                <dt className="text-xs text-[var(--steel)]">{row.k}</dt>
+                <dd className="mt-0.5 font-mono text-xs text-[var(--ink)]">{row.v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <p className="font-mono text-[11px] text-[var(--steel)]">
+          Authorised use only. Activity on this system is logged.
+        </p>
+      </aside>
+
+      {/* Kanan: form */}
+      <main className="flex items-center justify-center px-5 py-10">
+        <div className="w-full max-w-[26rem]">
+          <div className="mb-6 flex items-center gap-2 lg:hidden">
+            <span className="flex size-7 items-center justify-center rounded-sm bg-[var(--ink)] text-xs font-semibold text-white">
+              S
+            </span>
+            <span className="text-sm font-semibold text-[var(--ink)]">SentinelScan</span>
+          </div>
+
+          <h2 className="text-xl font-semibold text-[var(--ink)]">Sign in</h2>
+          <p className="mt-1 text-sm text-[var(--steel)]">
+            Use your workspace account to reach the scan console.
+          </p>
+
+          <form
+            className="mt-6 flex flex-col gap-4"
+            onSubmit={form.handleSubmit(onSubmit)}
+            noValidate
           >
-            <p className="text-sm font-medium">{error}</p>
-          </div>
-        )}
-
-        {/* Email Field */}
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-[var(--text-primary)] text-sm font-medium">
-                Email Address
-              </FormLabel>
-              <div className="relative mt-1.5">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" aria-hidden="true" />
-                <FormControl>
-                  <Input
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    spellCheck={false}
-                    placeholder="you@company.com"
-                    className="pl-10 text-sm border-[var(--border)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-0 rounded-xl h-12"
-                    {...field}
-                  />
-                </FormControl>
+            {error && (
+              <div
+                role="alert"
+                className="rounded-md border border-[var(--risk-high)] bg-[#FEE2E2] px-3 py-2 text-sm text-[var(--risk-high)]"
+              >
+                {error}
               </div>
-              <FormMessage className="text-xs mt-1" />
-            </FormItem>
-          )}
-        />
+            )}
 
-        {/* Password Field */}
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex items-center justify-between">
-                <FormLabel className="text-[var(--text-primary)] text-sm font-medium">
-                  Password
-                </FormLabel>
-                <Link
-                  to="/forgot-password"
-                  className="text-sm text-[var(--primary)] hover:text-[var(--primary-dark)] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:outline-none rounded-md touch-action-manipulation"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative mt-1.5">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" aria-hidden="true" />
-                <FormControl>
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    spellCheck={false}
-                    placeholder="Enter your password"
-                    className="pl-10 pr-10 text-sm border-[var(--border)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-0 rounded-xl h-12"
-                    {...field}
-                  />
-                </FormControl>
-                <button
-                  type="button"
-                  onClick={handlePasswordToggle}
-                  onKeyDown={handleKeyDown}
-                  tabIndex={0}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:outline-none rounded-md p-0.5 transition-colors touch-action-manipulation"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" aria-hidden="true" />
-                  ) : (
-                    <Eye className="h-4 w-4" aria-hidden="true" />
-                  )}
-                </button>
-              </div>
-              <FormMessage className="text-xs mt-1" />
-            </FormItem>
-          )}
-        />
-
-        {/* Remember Me */}
-        <FormField
-          control={form.control}
-          name="rememberMe"
-          render={({ field }) => (
-            <FormItem className="flex items-center gap-2 space-y-0">
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className="data-[state=checked]:bg-[var(--primary)] rounded-full data-[state=unchecked]:bg-[var(--border)]"
+            <FormField
+              id="email"
+              label="Email"
+              required
+              error={form.formState.errors.email?.message}
+            >
+              {(a11y) => (
+                <Input
+                  {...a11y}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  spellCheck={false}
+                  placeholder="you@company.com"
+                  {...form.register('email')}
                 />
-              </FormControl>
-              <FormLabel className="text-[var(--text-secondary)] text-sm cursor-pointer select-none">
-                Remember me for 30 days
-              </FormLabel>
-            </FormItem>
-          )}
-        />
+              )}
+            </FormField>
 
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          disabled={isLoading}
-          aria-live="polite"
-          className="w-full h-12 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 transition-all hover:opacity-90 touch-action-manipulation"
-        >
-          {isLoading ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className={`h-4 w-4 ${prefersReducedMotion ? '' : 'animate-spin'}`} aria-hidden="true" />
-              <span>Signing in…</span>
-            </div>
-          ) : (
-            "Sign In"
-          )}
-        </Button>
-      </form>
-    </Form>
-  );
-}
+            <FormField
+              id="password"
+              label="Password"
+              required
+              error={form.formState.errors.password?.message}
+            >
+              {(a11y) => (
+                <div className="relative">
+                  <Input
+                    {...a11y}
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    className="pr-10"
+                    {...form.register('password')}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-pressed={showPassword}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-1 text-[var(--steel)] hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-4" aria-hidden="true" />
+                    ) : (
+                      <Eye className="size-4" aria-hidden="true" />
+                    )}
+                  </button>
+                </div>
+              )}
+            </FormField>
 
-export default function LoginPage() {
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center px-6 py-12" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-16 items-center">
-        {/* Left Column - Modern Branding */}
-        <div className="hidden lg:flex flex-col justify-center">
-          <div className="space-y-8">
-            {/* Logo Badge */}
-            <div className="inline-flex items-center gap-3">
-              <div className="p-4 bg-[var(--primary)]/10 rounded-2xl">
-                <ShieldCheck className="h-10 w-10 text-[var(--primary)]" aria-hidden="true" />
-              </div>
-              <span className="text-xl font-semibold text-[var(--text-primary)]">SentinelScan</span>
-            </div>
-            
-            {/* Main Heading */}
-            <div className="space-y-4">
-              <h1 className="text-5xl font-bold tracking-tight text-[var(--text-primary)] leading-[1.1]">
-                Secure Your
-                <br />
-                <span className="text-[var(--primary)]">Infrastructure</span>
-              </h1>
-              <p className="text-xl text-[var(--text-secondary)] leading-relaxed max-w-lg">
-                Advanced vulnerability management platform for modern enterprises. 
-                Monitor, analyze, and remediate threats with confidence.
-              </p>
+            <div className="flex items-center justify-between">
+              <label htmlFor="remember" className="flex cursor-pointer items-center gap-2 text-sm text-[var(--steel)]">
+                <Switch
+                  id="remember"
+                  checked={form.watch('rememberMe') ?? false}
+                  onCheckedChange={(v) => form.setValue('rememberMe', v)}
+                />
+                Keep me signed in
+              </label>
+              <Link
+                to="/forgot-password"
+                className="rounded-sm text-sm text-[var(--signal)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]"
+              >
+                Forgot password?
+              </Link>
             </div>
 
-            {/* Features */}
-            <div className="grid grid-cols-2 gap-4 max-w-lg">
-              <div className="flex items-start gap-3 p-5 bg-[var(--bg-primary)] rounded-2xl border border-[var(--border)]">
-                <div className="mt-1 p-2 bg-[var(--success)]/10 rounded-xl">
-                  <ShieldCheck className="h-5 w-5 text-[var(--success)]" aria-hidden="true" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">Real-time Monitoring</p>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">24/7 threat detection</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-5 bg-[var(--bg-primary)] rounded-2xl border border-[var(--border)]">
-                <div className="mt-1 p-2 bg-[var(--info)]/10 rounded-xl">
-                  <svg className="h-5 w-5 text-[var(--info)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m18 0a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">Global Coverage</p>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">Multi-cloud & on-prem</p>
-                </div>
-              </div>
-            </div>
+            <Button type="submit" size="lg" disabled={submitting} aria-busy={submitting} className="mt-1 w-full">
+              {submitting && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
+              {submitting ? 'Signing in…' : 'Sign in'}
+            </Button>
+            <span role="status" aria-live="polite" className="sr-only">
+              {submitting ? 'Signing in' : ''}
+            </span>
+          </form>
 
-             {/* Stats */}
-             <div className="flex items-center gap-8 pt-4">
-               <div>
-                 <p className="text-3xl font-bold text-[var(--text-primary)] font-[tabular-nums]">47</p>
-                 <p className="text-xs text-[var(--text-muted)] font-medium">Assets Monitored</p>
-               </div>
-               <div className="w-px h-12 bg-[var(--border)]" />
-               <div>
-                 <p className="text-3xl font-bold text-[var(--danger)] font-[tabular-nums]">3</p>
-                 <p className="text-xs text-[var(--text-muted)] font-medium">Critical Issues</p>
-               </div>
-               <div className="w-px h-12 bg-[var(--border)]" />
-               <div>
-                 <p className="text-3xl font-bold text-[var(--warning)] font-[tabular-nums]">12</p>
-                 <p className="text-xs text-[var(--text-muted)] font-medium">High Priority</p>
-               </div>
-             </div>
-          </div>
+          <details className="mt-6 rounded-md border border-[var(--rule)] px-3 py-2 text-sm">
+            <summary className="cursor-pointer text-[var(--steel)]">Demo accounts</summary>
+            <ul className="mt-2 space-y-1 font-mono text-xs text-[var(--steel)]">
+              <li>admin@sentinelscan.com · admin</li>
+              <li>user@sentinelscan.com · user123</li>
+              <li>viewer@sentinelscan.com · viewer123</li>
+            </ul>
+          </details>
+
+          <p className="mt-6 flex items-center gap-1.5 text-xs text-[var(--steel)]">
+            <ShieldCheck className="size-3.5" aria-hidden="true" />
+            Sessions expire after inactivity. Contact an administrator for access.
+          </p>
         </div>
-
-        {/* Right Column - Login Form */}
-        <div className="relative">
-          {/* Decorative gradient */}
-          <div className="absolute -top-16 -right-16 w-96 h-96 bg-gradient-to-br from-[var(--primary)]/5 to-[var(--info)]/5 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="relative z-10">
-            {/* Mobile Logo (shown only on mobile) */}
-            <div className="lg:hidden text-center mb-8">
-              <div className="inline-flex items-center gap-2 mb-4">
-                <div className="p-3 bg-[var(--primary)]/10 rounded-2xl">
-                  <ShieldCheck className="h-8 w-8 text-[var(--primary)]" aria-hidden="true" />
-                </div>
-              </div>
-              <h1 className="text-3xl font-bold text-[var(--text-primary)]">Welcome Back</h1>
-              <p className="mt-2 text-sm text-[var(--text-secondary)]">
-                Sign in to your SentinelScan account
-              </p>
-            </div>
-
-            {/* Desktop Header (hidden on mobile) */}
-            <div className="hidden lg:block mb-8">
-              <h2 className="text-3xl font-bold text-[var(--text-primary)]">Welcome Back</h2>
-              <p className="mt-2 text-[var(--text-secondary)]">
-                Sign in to your SentinelScan account
-              </p>
-            </div>
-
-            {/* Login Card - Modern & Clean */}
-            <div className="bg-[var(--bg-primary)] border border-[var(--border)] rounded-3xl p-10 shadow-2xl">
-              {/* Security Badge */}
-              <div className="flex items-center justify-center gap-2 mb-8 pb-8 border-b border-[var(--border)]">
-                <ShieldCheck className="h-5 w-5 text-[var(--primary)]" aria-hidden="true" />
-                <span className="text-sm font-medium text-[var(--text-muted)]">
-                  Secure Encrypted Connection
-                </span>
-              </div>
-
-              <LoginForm />
-            </div>
-
-            {/* Footer */}
-            <p className="mt-8 text-center text-sm text-[var(--text-muted)]">
-              © 2026 SentinelScan. Built for professional security audits.
-            </p>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }

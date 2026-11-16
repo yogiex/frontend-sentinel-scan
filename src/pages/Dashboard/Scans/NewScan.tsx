@@ -179,7 +179,7 @@ export function NewScan() {
     if (original.config.scheduledDate) form.setValue("scheduledDate", original.config.scheduledDate);
     if (original.config.scheduledTime) form.setValue("scheduledTime", original.config.scheduledTime);
     form.setValue("useCredentials", original.config.credentials);
-    if (original.config.authType) form.setValue("authType", original.config.authType as any);
+    if (original.config.authType) form.setValue("authType", original.config.authType as "ssh-key" | "username-password" | "api-token" | "certificate");
     form.setValue("userAgentMode", original.config.userAgentMode || "random");
     form.setValue("enableCookies", original.config.enableCookies ?? true);
     form.setValue("humanLikeDelay", original.config.humanLikeDelay ?? true);

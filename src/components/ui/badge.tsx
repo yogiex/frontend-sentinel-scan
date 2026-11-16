@@ -5,17 +5,22 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-none border-2 px-2.5 py-0.5 text-xs font-bold font-mono uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[var(--text-primary)] focus:ring-offset-2",
+  [
+    "inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5",
+    "text-xs font-medium whitespace-nowrap",
+    "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)] focus-visible:ring-offset-1",
+  ].join(" "),
   {
     variants: {
       variant: {
         default:
-          "border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-primary)]",
+          "bg-[var(--ink)] text-white border-[var(--ink)]",
         secondary:
-          "border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)]",
+          "bg-[var(--surface)] text-[var(--steel)] border-[var(--rule)]",
         destructive:
-          "border-[var(--danger)] bg-[var(--danger)] text-white",
-        outline: "border-[var(--text-primary)] text-[var(--text-primary)] bg-transparent",
+          "bg-[var(--risk-high)] text-white border-[var(--risk-high)]",
+        outline:
+          "border-[var(--rule-strong)] text-[var(--steel)] bg-transparent",
       },
     },
     defaultVariants: {

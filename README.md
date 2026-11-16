@@ -34,7 +34,7 @@ A modern, responsive vulnerability scanning platform built with React, TypeScrip
 
 ## 🛠️ Tech Stack
 
-- **Framework**: React 18 with TypeScript
+- **Framework**: React 19 with TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
@@ -42,6 +42,18 @@ A modern, responsive vulnerability scanning platform built with React, TypeScrip
 - **Linting**: ESLint with TypeScript rules
 
 ## 🎨 Design System
+
+Arah visual: **evidence ledger** — monokrom bergaris, warna hanya untuk risiko.
+Sumber kebenaran: [`design-system/MASTER.md`](design-system/MASTER.md).
+Spesifikasi komponen: [`docs/COMPONENTS.md`](docs/COMPONENTS.md) ·
+Peta route: [`docs/ROUTES.md`](docs/ROUTES.md) ·
+Kontrak data: [`docs/DATA-CONTRACT.md`](docs/DATA-CONTRACT.md) ·
+Keputusan: [`docs/DECISION-LOG.md`](docs/DECISION-LOG.md).
+
+Catatan: bagian palet "Slate & Indigo" di bawah adalah dokumentasi lama dan
+sudah digantikan oleh token di `src/index.css` + `design-system/MASTER.md`.
+
+## 🎨 Design System (legacy notes)
 
 ### Color Palette: Slate & Indigo (Clean Professional)
 

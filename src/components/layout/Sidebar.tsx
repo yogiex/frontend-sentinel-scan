@@ -1,437 +1,140 @@
-/**
- * SentinelScan Sidebar Component
- * Path: src/components/layout/Sidebar.tsx
- *
- * Collapsible sidebar navigation with menu items and expandable subtrees.
- * Uses Redux to manage open/collapsed state.
- * Updated to use CSS variables for consistent theming.
- */
-import { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { ShieldCheck } from 'lucide-react';
+import { NAV } from '@/app/nav';
 import { cn } from '@/lib/utils';
-import { toggleSidebar, selectSidebarOpen } from '@/store/slices/uiSlice';
-import {
-  LayoutDashboard, 
-  Search, 
-  Plus, 
-  FileText, 
-  Users, 
-  Settings, 
-  ChevronRight, 
-  ChevronDown,
-  User,
-  Mail,
-  Trash2,
-  Ticket,
-  List,
-  Kanban,
-} from 'lucide-react';
+import { selectUser } from '@/store/slices/authSlice';
+import { PERMISSIONS, type Permission, type Role } from '@/types/permissions';
 
-interface NavItem {
-  path: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  children?: NavItem[];
+export interface SidebarProps {
+  /** mobile drawer state */
+  open: boolean;
+  onClose: () => void;
+  pathname: string;
 }
 
-const navItems: NavItem[] = [
-  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  {
-    path: '/dashboard/scans',
-    label: 'Scans',
-    icon: Search,
-    children: [
-      { path: '/dashboard/scans/new', label: 'New Scan', icon: Plus },
-      { path: '/dashboard/scans/all', label: 'All Scans', icon: FileText },
-      { path: '/dashboard/scans/my-scans', label: 'My Scans', icon: User },
-      { path: '/dashboard/scans/trash', label: 'Trash', icon: Trash2 },
-    ],
-  },
-  { path: '/dashboard/templates', label: 'Templates', icon: FileText },
-  { path: '/dashboard/users', label: 'Users', icon: Users },
-  {
-    path: '/dashboard/tickets',
-    label: 'Tickets',
-    icon: Ticket,
-    children: [
-      { path: '/dashboard/tickets', label: 'All Tickets', icon: List },
-      { path: '/dashboard/tickets/kanban', label: 'Kanban Board', icon: Kanban },
-    ],
-  },
-  { path: '/dashboard/logs', label: 'Audit Trails', icon: FileText },
-  { path: '/dashboard/settings', label: 'Settings', icon: Settings },
-];
-
-function getStoredUser() {
-  try {
-    const stored = localStorage.getItem('sentinelscan_user');
-    if (stored) return JSON.parse(stored);
-  } catch { /* ignore parse error */ }
-  return null;
+function permissionsFor(role?: Role | null): Permission[] {
+  if (!role) return [];
+  return PERMISSIONS[role] ?? [];
 }
 
-export function Sidebar() {
-  const dispatch = useDispatch();
-  const sidebarOpen = useSelector(selectSidebarOpen);
-  const location = useLocation();
-  const [expandedItems, setExpandedItems] = useState<string[]>(['/dashboard/scans', '/dashboard/tickets']);
-  const [user, setUser] = useState<{ id: string; username: string; email: string; role: string } | null>(getStoredUser);
+export function Sidebar({ open, onClose, pathname }: SidebarProps) {
+  const user = useSelector(selectUser);
+  const perms = permissionsFor(user?.role as Role | undefined);
+  const can = (p?: Permission) => !p || perms.includes('full_access') || perms.includes(p);
 
-  useEffect(() => {
-    const handler = () => setUser(getStoredUser());
-    window.addEventListener('storage', handler);
-    return () => window.removeEventListener('storage', handler);
-  }, []);
-
-  const toggleExpand = (path: string) => {
-    setExpandedItems(prev =>
-      prev.includes(path) ? prev.filter(p => p !== path) : [...prev, path]
-    );
-  };
-
-  const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/');
-  };
+  const areas = NAV.filter((a) => can(a.permission));
+  const active =
+    areas.find((a) => (a.end ? pathname === a.to : pathname === a.to || pathname.startsWith(`${a.to}/`))) ??
+    areas[0];
 
   return (
-    <aside
-      className={cn(
-        'h-screen flex flex-col relative transition-all duration-500 ease-in-out',
-        sidebarOpen ? 'w-72' : 'w-20'
-      )}
-      style={{ backgroundColor: 'var(--bg-secondary)', borderRightColor: 'var(--border)', borderRightWidth: '1px' }}
-    >
-       {/* Subtle background pattern */}
-       <div 
-         className="absolute inset-0 pointer-events-none" 
-         style={{ 
-           background: 'radial-gradient(ellipse at center, transparent 0%, rgba(79, 70, 229, 0.03) 100%)' 
-         }} 
-       />
-      
-      {/* Logo/Brand */}
-      <div 
+    <>
+      {/* mobile scrim */}
+      <div
         className={cn(
-          "relative z-10 border-b flex items-center justify-between",
-          sidebarOpen ? "p-6" : "p-4"
+          'fixed inset-0 z-40 bg-[rgba(23,26,31,.45)] transition-opacity lg:hidden',
+          open ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
-        style={{ borderBottomColor: 'var(--border)' }}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 flex bg-[var(--paper)] transition-transform duration-200',
+          'border-r border-[var(--rule)]',
+          open ? 'translate-x-0' : '-translate-x-full',
+          'lg:static lg:z-auto lg:translate-x-0',
+        )}
+        aria-label="Primary"
       >
-        {sidebarOpen ? (
-          <div className="flex items-center gap-3">
-              <div 
-                className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"
-                style={{ 
-                  background: 'linear-gradient(to bottom right, var(--primary), rgba(79, 70, 229, 0.8))',
-                  color: 'var(--primary-foreground)',
-                  boxShadow: '0 10px 15px -3px rgba(79, 70, 229, 0.2)'
-                }}
-              >
-              <span className="font-bold text-lg">S</span>
-            </div>
-            <h1 
-              className="text-xl font-bold bg-clip-text"
-              style={{ 
-                backgroundImage: 'linear-gradient(to right, var(--primary), rgba(79, 70, 229, 0.7))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              SentinelScan
-            </h1>
-          </div>
-        ) : (
-            <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg mx-auto"
-              style={{ 
-                background: 'linear-gradient(to bottom right, var(--primary), rgba(79, 70, 229, 0.8))',
-                color: 'var(--primary-foreground)',
-                boxShadow: '0 10px 15px -3px rgba(79, 70, 229, 0.2)'
-              }}
-            >
-            <span className="font-bold text-lg">S</span>
-          </div>
-        )}
-        <button
-          onClick={() => dispatch(toggleSidebar())}
-          className="transition-all duration-200 hover:scale-110 rounded-lg p-2 backdrop-blur-sm"
-          style={{ 
-            color: 'var(--text-muted)',
-            backgroundColor: 'transparent'
-          }}
-           onMouseEnter={(e) => { 
-             e.currentTarget.style.backgroundColor = 'rgba(79, 70, 229, 0.05)';
-             e.currentTarget.style.color = 'var(--text-primary)';
-           }}
-           onMouseLeave={(e) => { 
-             e.currentTarget.style.backgroundColor = 'transparent';
-             e.currentTarget.style.color = 'var(--text-muted)';
-           }}
-          aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-        >
-          {sidebarOpen ? (
-            <ChevronRight className="w-5 h-5" />
-          ) : (
-            <ChevronDown className="w-5 h-5" />
-          )}
-        </button>
-      </div>
+        {/* rail */}
+        <div className="flex w-14 shrink-0 flex-col items-center border-r border-[var(--rule)] bg-[var(--surface)]">
+          <Link to="/dashboard" className="flex h-14 w-14 items-center justify-center border-b border-[var(--rule)]">
+            <span className="flex size-7 items-center justify-center rounded-sm bg-[var(--ink)] text-xs font-semibold text-white">
+              S
+            </span>
+            <span className="sr-only">SentinelScan home</span>
+          </Link>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-4 space-y-2 relative z-10">
-        {navItems.map((item) => {
-          const isExpanded = expandedItems.includes(item.path);
-          const hasChildren = item.children && item.children.length > 0;
-          const active = isActive(item.path);
-
-          return (
-            <div key={item.path} className="space-y-1">
-              {/* Main Nav Item */}
-              {hasChildren ? (
-                <div
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 cursor-pointer group',
-                    !sidebarOpen && 'justify-center px-2'
-                  )}
-                  style={{ 
-                    backgroundColor: active ? 'rgba(79, 70, 229, 0.1)' : 'transparent',
-                    borderColor: active ? 'rgba(79, 70, 229, 0.2)' : 'transparent',
-                    borderWidth: active ? '1px' : '0'
-                  }}
-                  onMouseEnter={(e) => { 
-                    if (!active) {
-                      e.currentTarget.style.backgroundColor = 'rgba(79, 70, 229, 0.05)';
-                    }
-                  }}
-                  onMouseLeave={(e) => { 
-                    if (!active) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }
-                  }}
-                  onClick={() => {
-                    if (sidebarOpen) {
-                      toggleExpand(item.path);
-                    }
-                  }}
-                  title={!sidebarOpen ? item.label : undefined}
-                >
-                  <div 
-                    className="p-2 rounded-lg transition-all duration-200"
-                    style={{ 
-                      backgroundColor: active ? 'var(--primary)' : 'rgba(79, 70, 229, 0.05)',
-                      color: active ? 'var(--primary-foreground)' : 'var(--text-muted)'
-                    }}
-                  >
-                    <item.icon className="w-5 h-5" />
-                  </div>
-                  {sidebarOpen && (
-                    <>
-                      <span 
-                        className="text-sm font-medium flex-1 truncate"
-                        style={{ color: 'var(--text-primary)' }}
-                      >
-                        {item.label}
-                      </span>
-                      <span
-                        className="transition-transform duration-200 flex-shrink-0"
-                        style={{ 
-                          color: 'var(--text-muted)',
-                          transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)'
-                        }}
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </span>
-                    </>
-                  )}
-                </div>
-              ) : (
+          <nav className="flex flex-1 flex-col items-center gap-0.5 py-2" aria-label="Areas">
+            {areas.map((area) => {
+              const Icon = area.icon;
+              const isActive = active?.key === area.key;
+              return (
                 <NavLink
-                  to={item.path}
+                  key={area.key}
+                  to={area.to}
+                  end={area.end}
+                  title={area.label}
+                  aria-label={area.label}
+                  aria-current={isActive ? 'page' : undefined}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group',
-                    !sidebarOpen && 'justify-center px-2'
+                    'flex size-10 items-center justify-center rounded-sm transition-colors',
+                    isActive
+                      ? 'bg-[var(--ink)] text-white'
+                      : 'text-[var(--steel)] hover:bg-[var(--bg-hover)] hover:text-[var(--ink)]',
                   )}
-                  style={{ 
-                    backgroundColor: active ? 'rgba(79, 70, 229, 0.1)' : 'transparent',
-                    borderColor: active ? 'rgba(79, 70, 229, 0.2)' : 'transparent',
-                    borderWidth: active ? '1px' : '0'
-                  }}
-                  onMouseEnter={(e) => { 
-                    if (!active) {
-                      e.currentTarget.style.backgroundColor = 'rgba(79, 70, 229, 0.05)';
-                    }
-                  }}
-                  onMouseLeave={(e) => { 
-                    if (!active) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }
-                  }}
-                  title={!sidebarOpen ? item.label : undefined}
                 >
-                  <div 
-                    className="p-2 rounded-lg transition-all duration-200"
-                    style={{ 
-                      backgroundColor: active ? 'var(--primary)' : 'rgba(79, 70, 229, 0.05)',
-                      color: active ? 'var(--primary-foreground)' : 'var(--text-muted)'
-                    }}
-                  >
-                    <item.icon className="w-5 h-5" />
-                  </div>
-                  {sidebarOpen && (
-                    <span 
-                      className="text-sm font-medium flex-1 truncate"
-                      style={{ color: 'var(--text-primary)' }}
-                    >
-                      {item.label}
-                    </span>
-                  )}
+                  <Icon className="size-5" aria-hidden="true" />
                 </NavLink>
-              )}
+              );
+            })}
+          </nav>
+        </div>
 
-              {/* Subtree/Children */}
-              {sidebarOpen && hasChildren && isExpanded && (
-                  <div 
-                   className="ml-4 mt-2 space-y-1 pl-4"
-                   style={{ 
-                     borderLeftColor: 'rgba(79, 70, 229, 0.2)',
-                     borderLeftWidth: '1px'
-                   }}
-                 >
-                  {item.children!.map((child) => {
-                    const childActive = location.pathname === child.path;
-                    return (
-                      <NavLink
-                        key={child.path}
-                        to={child.path}
-                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group"
-                        style={{ 
-                          backgroundColor: childActive ? 'rgba(79, 70, 229, 0.1)' : 'transparent',
-                          borderColor: childActive ? 'rgba(79, 70, 229, 0.2)' : 'transparent',
-                          borderWidth: childActive ? '1px' : '0'
-                        }}
-                        onMouseEnter={(e) => { 
-                          if (!childActive) {
-                            e.currentTarget.style.backgroundColor = 'rgba(79, 70, 229, 0.05)';
-                          }
-                        }}
-                        onMouseLeave={(e) => { 
-                          if (!childActive) {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }
-                        }}
-                      >
-                        <div 
-                          className="p-1.5 rounded-md transition-all duration-200"
-                          style={{ 
-                            backgroundColor: childActive ? 'var(--primary)' : 'rgba(79, 70, 229, 0.05)',
-                            color: childActive ? 'var(--primary-foreground)' : 'var(--text-muted)'
-                          }}
-                        >
-                          <child.icon className="w-4 h-4" />
-                        </div>
-                        <span 
-                        className="group-hover:text-slate-200"
-                        style={{ color: childActive ? 'var(--text-primary)' : 'var(--text-secondary)' }}
-                        onMouseEnter={(e) => { 
-                          if (!childActive) {
-                            e.currentTarget.style.color = 'var(--text-primary)';
-                          }
-                        }}
-                        onMouseLeave={(e) => { 
-                          if (!childActive) {
-                            e.currentTarget.style.color = 'var(--text-secondary)';
-                          }
-                        }}
-                        >
-                          {child.label}
-                        </span>
-                      </NavLink>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </nav>
+        {/* context column */}
+        <div className="flex w-[232px] flex-col">
+          <div className="flex h-14 items-center gap-2 border-b border-[var(--rule)] px-4">
+            <span className="truncate text-sm font-semibold text-[var(--ink)]">SentinelScan</span>
+            <span className="ml-auto rounded-sm border border-[var(--rule)] px-1 py-0.5 font-mono text-[10px] text-[var(--steel)]">
+              v0.1
+            </span>
+          </div>
 
-      {/* User Section */}
-      <div 
-        className="relative z-10 border-t p-6"
-        style={{ borderTopColor: 'var(--border)' }}
-      >
-        {sidebarOpen ? (
-          <div 
-            className="flex items-center gap-3 p-3 rounded-xl backdrop-blur-sm border transition-all duration-200"
-            style={{ 
-              backgroundColor: 'rgba(79, 70, 229, 0.03)',
-              borderColor: 'var(--border)'
-            }}
-            onMouseEnter={(e) => { 
-              e.currentTarget.style.backgroundColor = 'rgba(79, 70, 229, 0.05)';
-            }}
-            onMouseLeave={(e) => { 
-              e.currentTarget.style.backgroundColor = 'rgba(79, 70, 229, 0.03)';
-            }}
-          >
-            <div className="relative">
-              <div 
-                className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"
-                style={{ 
-                  background: 'linear-gradient(to bottom right, var(--primary), rgba(79, 70, 229, 0.8))',
-                  color: 'var(--primary-foreground)',
-                  boxShadow: '0 10px 15px -3px rgba(79, 70, 229, 0.2)'
-                }}
-              >
-                <span className="font-bold text-lg">{(user?.username || 'A')[0].toUpperCase()}</span>
+          <div className="flex-1 overflow-y-auto px-2 py-3">
+            <p className="px-2 pb-2 text-xs text-[var(--steel)]">{active?.label ?? 'Dashboard'}</p>
+            <ul className="flex flex-col gap-0.5">
+              {(active?.children ?? [{ label: active?.label ?? 'Overview', to: active?.to ?? '/dashboard', end: true }])
+                .filter((c) => can(c.permission))
+                .map((child) => (
+                  <li key={child.to + child.label}>
+                    <NavLink
+                      to={child.to}
+                      end={child.end}
+                      onClick={onClose}
+                      className={({ isActive }) =>
+                        cn(
+                          'block rounded-sm px-2 py-1.5 text-sm transition-colors',
+                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]',
+                          isActive
+                            ? 'bg-[var(--surface)] font-medium text-[var(--ink)]'
+                            : 'text-[var(--steel)] hover:bg-[var(--surface)] hover:text-[var(--ink)]',
+                        )
+                      }
+                    >
+                      {child.label}
+                    </NavLink>
+                  </li>
+                ))}
+            </ul>
+          </div>
+
+          <div className="border-t border-[var(--rule)] p-2">
+            <div className="flex items-center gap-2 rounded-sm px-2 py-1.5">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-sm border border-[var(--rule)] text-xs font-medium text-[var(--steel)]">
+                {(user?.username ?? 'A').slice(0, 1).toUpperCase()}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-xs font-medium text-[var(--ink)]">{user?.username ?? 'Admin'}</p>
+                <p className="truncate text-[11px] text-[var(--steel)]">{user?.role ?? 'admin'}</p>
               </div>
-              <div 
-                className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2"
-                style={{ 
-                  backgroundColor: 'var(--success)',
-                  borderColor: 'var(--bg-card)'
-                }}
-              ></div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p 
-                className="text-sm font-semibold truncate"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                {user?.username || 'Guest'}
-              </p>
-              <div className="flex items-center gap-1 mt-1">
-                <Mail className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
-                <p 
-                  className="text-xs truncate"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  {user?.email || 'guest@sentinelscan.com'}
-                </p>
-              </div>
+              <ShieldCheck className="ml-auto size-3.5 shrink-0 text-[var(--steel)]" aria-hidden="true" />
             </div>
           </div>
-        ) : (
-            <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg mx-auto relative"
-              style={{ 
-                background: 'linear-gradient(to bottom right, var(--primary), rgba(79, 70, 229, 0.8))',
-                color: 'var(--primary-foreground)',
-                boxShadow: '0 10px 15px -3px rgba(79, 70, 229, 0.2)'
-              }}
-            >
-            <span className="font-bold text-lg">{(user?.username || 'A')[0].toUpperCase()}</span>
-            <div 
-              className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2"
-              style={{ 
-                backgroundColor: 'var(--success)',
-                borderColor: 'var(--bg-card)'
-              }}
-            ></div>
-          </div>
-        )}
-      </div>
-    </aside>
+        </div>
+      </aside>
+    </>
   );
 }

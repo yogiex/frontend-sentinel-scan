@@ -1,27 +1,15 @@
 /**
- * StatsCard Component - Shared component for dashboard statistics
- * 
- * Features:
- * - Consistent styling across all dashboard pages
- * - Icon on the left with label and value
- * - Monospace font for tabular numbers
- * - CSS variables for theming
- * - Hover effects
+ * StatsCard — kartu statistik legacy.
+ * Untuk kode baru pakai `@/shared/ui/StatStrip`.
  */
-
 import type { LucideIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface StatsCardProps {
-  /** Lucide icon component */
   icon: LucideIcon;
-  /** Label text (will be displayed in uppercase) */
   label: string;
-  /** Numeric or string value to display */
   value: number | string;
-  /** Color for icon and value (CSS variable or hex color) */
   color?: string;
-  /** Optional: override border color */
   borderColor?: string;
 }
 
@@ -29,32 +17,18 @@ export function StatsCard({
   icon: Icon,
   label,
   value,
-  color = 'var(--primary)',
+  color = 'var(--ink)',
   borderColor,
 }: StatsCardProps) {
-  const borderStyle = borderColor || color;
-
   return (
-    <Card
-      className="hover:shadow-md transition-shadow"
-      style={{
-        borderColor: borderStyle,
-      }}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-center gap-3">
-          <Icon className="w-5 h-5 flex-shrink-0" style={{ color, opacity: 0.8 }} />
-          <div className="min-w-0 flex-1">
-            <p className="text-[0.65rem] font-mono uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-              {label}
-            </p>
-            <p
-              className="text-2xl font-bold mt-1 font-mono tabular-nums truncate"
-              style={{ color }}
-            >
-              {value}
-            </p>
-          </div>
+    <Card style={borderColor ? { borderColor } : undefined}>
+      <CardContent className="flex items-start gap-3 p-4">
+        <Icon className="mt-0.5 size-4 shrink-0" style={{ color }} aria-hidden="true" />
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-[var(--steel)]">{label}</p>
+          <p className="tnum mt-0.5 font-mono text-2xl font-medium leading-tight" style={{ color }}>
+            {value}
+          </p>
         </div>
       </CardContent>
     </Card>

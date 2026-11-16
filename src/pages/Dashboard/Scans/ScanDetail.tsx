@@ -144,7 +144,7 @@ export function ScanDetail() {
         <Card className="bg-white border-slate-200">
           <CardContent className="p-4 text-center">
             <p className="text-xs text-slate-500 mb-1">Status</p>
-            <StatusChip status={scan.status as any} />
+            <StatusChip status={scan.status} />
           </CardContent>
         </Card>
         <Card className="bg-white border-slate-200">
@@ -292,7 +292,7 @@ export function ScanDetail() {
                             onClick={() => navigate(`/dashboard/scans/${scan.id}/results/${vuln.id}`)}
                           >
                             <td className="py-2 px-4">
-                              <SeverityChip severity={vuln.severity as any} size="sm" />
+                              <SeverityChip severity={vuln.severity} size="sm" />
                             </td>
                             <td className="py-2 px-4">
                               <div className="flex items-start gap-2">
@@ -383,7 +383,7 @@ export function ScanDetail() {
                           </td>
                           <td className="py-2 px-4">
                             <div className="flex flex-col gap-0.5">
-                              <StatusChip status={h.status as any} size="sm" />
+                              <StatusChip status={h.status} size="sm" />
                               {isRescanRun && (
                                 <span className="text-xs text-slate-400 italic mt-0.5">
                                   ← <button className="hover:text-indigo-500 hover:underline" onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/scans/${h.sourceScanId}`); }}>Run #{prevScan?.runNumber || '?'}</button>

@@ -1,35 +1,29 @@
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import { SeverityBadge } from './SeverityBadge';
 
 describe('SeverityBadge', () => {
-  it('renders critical severity correctly', () => {
+  it('renders the level label', () => {
     render(<SeverityBadge severity="critical" />);
     expect(screen.getByText('Critical')).toBeInTheDocument();
   });
 
-  it('renders high severity correctly', () => {
-    render(<SeverityBadge severity="high" />);
-    expect(screen.getByText('High')).toBeInTheDocument();
+  it('falls back to Unknown for unrecognised values', () => {
+    render(<SeverityBadge severity="catastrophic" />);
+    expect(screen.getByText('Unknown')).toBeInTheDocument();
   });
 
-  it('renders medium severity correctly', () => {
-    render(<SeverityBadge severity="medium" />);
-    expect(screen.getByText('Medium')).toBeInTheDocument();
+  it('gives high and medium different colours', () => {
+    const { container: high } = render(<SeverityBadge severity="high" />);
+    const { container: medium } = render(<SeverityBadge severity="medium" />);
+    const highStyle = (high.querySelector('span') as HTMLElement).style.backgroundColor;
+    const mediumStyle = (medium.querySelector('span') as HTMLElement).style.backgroundColor;
+    expect(highStyle).not.toBe(mediumStyle);
   });
 
-  it('renders low severity correctly', () => {
-    render(<SeverityBadge severity="low" />);
-    expect(screen.getByText('Low')).toBeInTheDocument();
-  });
-
-  it('defaults to low severity for unknown values', () => {
-    render(<SeverityBadge severity="unknown" />);
-    expect(screen.getByText('Low')).toBeInTheDocument();
-  });
-
-  it('applies correct CSS variables for critical severity', () => {
-    render(<SeverityBadge severity="critical" />);
-    const badge = screen.getByText('Critical');
-    expect(badge).toHaveStyle({ color: 'var(--danger)' });
+  it('carries an icon as well as colour', () => {
+    const { container } = render(<SeverityBadge severity="low" />);
+    expect(container.querySelector('svg')).not.toBeNull();
   });
 });

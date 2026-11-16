@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 
 // Polyfill for IntersectionObserver in test environment
-class IntersectionObserver {
+class MockIntersectionObserver {
   readonly root: Element | null = null
   readonly rootMargin: string = ''
   readonly thresholds: ReadonlyArray<number> = []
@@ -20,7 +20,7 @@ class IntersectionObserver {
         target,
         time: Date.now(),
       }],
-      this as any  // MVP fix
+      this as unknown as globalThis.IntersectionObserver
     )
   }
   
@@ -29,4 +29,4 @@ class IntersectionObserver {
   takeRecords(): IntersectionObserverEntry[] { return [] }
 }
 
-globalThis.IntersectionObserver = IntersectionObserver as any
+globalThis.IntersectionObserver = MockIntersectionObserver as unknown as typeof globalThis.IntersectionObserver

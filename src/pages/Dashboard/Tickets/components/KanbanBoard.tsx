@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- this module intentionally exports constants alongside its component */
 /**
  * Kanban Board Component with Drag & Drop
  * Path: src/pages/Dashboard/Tickets/components/KanbanBoard.tsx
@@ -12,6 +13,14 @@ import { TicketStatus, TicketPriority, Ticket } from '@/types/ticket';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Clock, XCircle, CheckCircle } from 'lucide-react';
+
+interface DndEvent {
+  canceled?: boolean;
+  operation: {
+    source?: { id?: string | number | null } | null;
+    target?: { id?: string | number | null } | null;
+  };
+}
 
 // ─── Aesthetic: Light Theme Status Colors ───────────────────────
 export const STATUS_COLORS: Record<TicketStatus, { bg: string; border: string; accent: string }> = {
@@ -222,11 +231,11 @@ export function KanbanBoard({
   tickets: Ticket[];
   allTickets: Ticket[];
   onTicketClick: (id: string) => void;
-  onDragEnd: (event: any) => void;
+  onDragEnd: (event: DndEvent) => void;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const handleDragStart = useCallback((event: any) => {
+  const handleDragStart = useCallback((event: DndEvent) => {
     setActiveId(event.operation.source?.id as string | null);
   }, []);
 
