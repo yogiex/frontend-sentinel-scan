@@ -6,26 +6,36 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium border ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--text-primary)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 rounded-lg transition-colors duration-150",
+  [
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap",
+    "text-sm font-medium border rounded-md",
+    "transition-colors duration-150",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]",
+    "disabled:pointer-events-none disabled:opacity-50",
+    "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  ].join(" "),
   {
     variants: {
       variant: {
-        default: "bg-[var(--text-primary)] text-white border-[var(--text-primary)] hover:bg-[var(--text-primary)]/90",
-        primary: "bg-[var(--primary)] text-white border-[var(--primary)] hover:bg-[var(--primary-dark)]",
+        default:
+          "bg-[var(--ink)] text-white border-[var(--ink)] hover:bg-black",
+        primary:
+          "bg-[var(--ink)] text-white border-[var(--ink)] hover:bg-black",
         destructive:
-          "bg-[var(--danger)] text-white border-[var(--danger)] hover:bg-[var(--danger)]/90",
+          "bg-[var(--risk-high)] text-white border-[var(--risk-high)] hover:bg-[var(--risk-critical)]",
         outline:
-          "border-[var(--border)] bg-transparent text-[var(--text-primary)] hover:bg-[var(--text-primary)]/10 hover:border-[var(--text-primary)]",
+          "border-[var(--rule-strong)] bg-[var(--paper)] text-[var(--ink)] hover:bg-[var(--surface)]",
         secondary:
-          "bg-[var(--bg-secondary)] text-[var(--text-primary)] border-[var(--border)] hover:bg-[var(--bg-hover)]",
-        ghost: "border-transparent hover:bg-[var(--text-primary)]/10 hover:text-[var(--text-primary)]",
-        link: "text-[var(--text-primary)] underline-offset-4 hover:underline border-transparent",
+          "bg-[var(--surface)] text-[var(--ink)] border-[var(--rule)] hover:bg-[var(--bg-hover)]",
+        ghost:
+          "border-transparent bg-transparent text-[var(--ink)] hover:bg-[var(--surface)]",
+        link: "border-transparent bg-transparent text-[var(--signal)] underline-offset-4 hover:underline p-0 h-auto",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 px-3",
-        lg: "h-11 px-8",
-        icon: "h-10 w-10",
+        default: "h-9 px-3.5",
+        sm: "h-8 px-2.5 text-xs",
+        lg: "h-10 px-4",
+        icon: "h-9 w-9 p-0",
       },
     },
     defaultVariants: {
@@ -48,6 +58,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        type={asChild ? undefined : (props.type ?? "button")}
         {...props}
       />
     )

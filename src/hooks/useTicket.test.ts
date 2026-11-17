@@ -1,7 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTicket } from './useTicket';
-import { TicketStatus, TicketPriority } from '@/types/ticket';
 
 describe('useTicket Hook', () => {
   it('loads mock tickets on init', () => {

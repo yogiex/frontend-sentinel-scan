@@ -150,13 +150,13 @@ export function TrashScans() {
                         <td className="py-3 px-4">
                           <span className="font-mono text-sm line-through text-slate-900 opacity-60">{scan.target}</span>
                         </td>
-                        <td className="py-3 px-4"><StatusChip status={scan.status as any} size="sm" /></td>
+                        <td className="py-3 px-4"><StatusChip status={scan.status} size="sm" /></td>
                         <td className="py-3 px-4">
                           <span className={scan.findings.length > 0 ? 'text-red-500 font-semibold' : 'text-slate-500'}>
                             {scan.findings.length}
                           </span>
                         </td>
-                        <td className="py-3 px-4"><SeverityChip severity={getSeverityFromFindings(scan) as any} size="sm" /></td>
+                        <td className="py-3 px-4"><SeverityChip severity={getSeverityFromFindings(scan)} size="sm" /></td>
                         <td className="py-3 px-4 text-slate-500">{scan.deletedBy || 'unknown'}</td>
                         <td className="py-3 px-4 text-slate-500">
                           {scan.deletedAt ? new Date(scan.deletedAt).toLocaleDateString() : '—'}

@@ -30,7 +30,9 @@ function getCurrentUser(): string {
       const user = JSON.parse(stored);
       return user.id || '1';
     }
-  } catch {}
+  } catch {
+    // no stored session yet — fall back to the mock user id
+  }
   return '1';
 }
 
@@ -188,7 +190,7 @@ export function MyScans() {
                       >
                         <td className="py-3 px-4 font-mono text-slate-900">{scan.target}</td>
                         <td className="py-3 px-4">
-                          <StatusChip status={scan.status as any} size="sm" />
+                          <StatusChip status={scan.status} size="sm" />
                         </td>
                         <td className="py-3 px-4 text-slate-500">{scan.scanType}</td>
                         <td className="py-3 px-4">
@@ -197,7 +199,7 @@ export function MyScans() {
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <SeverityChip severity={getSeverityFromFindings(scan) as any} size="sm" />
+                          <SeverityChip severity={getSeverityFromFindings(scan)} size="sm" />
                         </td>
                         <td className="py-3 px-4 text-slate-500">{formatDuration(scan)}</td>
                         <td className="py-3 px-4 text-slate-500">

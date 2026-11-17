@@ -1,66 +1,48 @@
-/**
- * ProtectedRoute Component
- * Path: src/components/auth/ProtectedRoute.tsx
- *
- * Route guard that checks permissions before rendering children.
- * Super-admin can access everything.
- */
-import { Navigate } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { selectUser, selectIsAuthenticated } from '@/store/slices/authSlice';
-import type { Permission, Role } from '@/types/permissions';
+import { selectIsAuthenticated, selectUser } from '@/store/slices/authSlice';
+import { usePermission } from '@/hooks/usePermission';
+import { StatePanel } from '@/shared/ui/StatePanel';
+import type { Permission } from '@/types/permissions';
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-  requiredPermissions?: Permission[];
-  requiredRole?: Role;
-  fallbackPath?: string;
+/** Menjaga seluruh subtree /dashboard. */
+export function RequireAuth() {
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  return <Outlet />;
 }
 
-export function ProtectedRoute({
+/** Menjaga satu route berdasarkan permission. */
+export function RequirePermission({
+  permission,
   children,
-  requiredPermissions = [],
-  requiredRole,
-  fallbackPath = '/dashboard'
-}: ProtectedRouteProps) {
-  const user = useSelector(selectUser);
+}: {
+  permission: Permission;
+  children: ReactNode;
+}) {
+  const { canAccess } = usePermission();
+  if (!canAccess([permission])) {
+    return (
+      <StatePanel
+        variant="no-permission"
+        title="You do not have access to this page"
+        description="Your role does not include this permission. Ask an administrator to grant access."
+      />
+    );
+  }
+  return <>{children}</>;
+}
+
+/** Halaman publik: sudah login → dashboard. */
+export function GuestOnly({ children }: { children: ReactNode }) {
   const isAuthenticated = useSelector(selectIsAuthenticated);
-
-  // Not authenticated → redirect to login
-  if (!isAuthenticated || !user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Check role if specified
-  if (requiredRole) {
-    if (requiredRole === 'super-admin' && user.role !== 'super-admin') {
-      return <Navigate to={fallbackPath} replace />;
-    }
-    if (requiredRole !== user.role) {
-      return <Navigate to={fallbackPath} replace />;
-    }
-  }
-
-  // Check permissions if specified
-  if (requiredPermissions.length > 0) {
-    const userPerms = user.permissions || [];
-
-    // Super-admin or full_access can access everything
-    if (user.role === 'super-admin') {
-      return <>{children}</>;
-    }
-
-    if (userPerms.includes('full_access')) {
-      return <>{children}</>;
-    }
-
-    // Check if user has ANY of the required permissions
-    const hasPermission = requiredPermissions.some(perm => userPerms.includes(perm));
-
-    if (!hasPermission) {
-      return <Navigate to={fallbackPath} replace />;
-    }
-  }
-
+  const user = useSelector(selectUser);
+  if (isAuthenticated && user) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }

@@ -63,7 +63,7 @@ export const mockLogin = createAsyncThunk(
       
       // Store user with permissions in localStorage for persistence
       const userWithPerms = { ...user, permissions };
-      localStorage.setItem('sentinelscan_user', JSON.stringify(userWithPerms));
+      localStorage.setItem(STORAGE_USER, JSON.stringify(userWithPerms));
       
       return { user, token };
     }
@@ -72,10 +72,29 @@ export const mockLogin = createAsyncThunk(
   }
 );
 
+const STORAGE_USER = 'sentinelscan_user';
+const STORAGE_TOKEN = 'authToken';
+
+/**
+ * Sesi dipulihkan dari penyimpanan saat boot supaya refresh halaman tidak
+ * melempar pengguna ke /login (temuan audit: state auth tidak pernah rehidrasi).
+ * TODO(M2): pindahkan token ke cookie httpOnly + refresh token.
+ */
+function readSession(): Pick<AuthState, 'user' | 'token' | 'isAuthenticated'> {
+  try {
+    const raw = localStorage.getItem(STORAGE_USER);
+    const token = localStorage.getItem(STORAGE_TOKEN);
+    if (!raw || !token) return { user: null, token: null, isAuthenticated: false };
+    const user = JSON.parse(raw) as User;
+    if (!user?.email) return { user: null, token: null, isAuthenticated: false };
+    return { user, token, isAuthenticated: true };
+  } catch {
+    return { user: null, token: null, isAuthenticated: false };
+  }
+}
+
 const initialState: AuthState = {
-  user: null,
-  token: null,
-  isAuthenticated: false,
+  ...readSession(),
   loading: false,
   error: null
 };
@@ -89,8 +108,9 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       state.error = null;
-      // Clear token from localStorage
-      localStorage.removeItem('authToken');
+      // Clear the whole session, not just the token
+      localStorage.removeItem(STORAGE_TOKEN);
+      localStorage.removeItem(STORAGE_USER);
     },
     clearError: (state) => {
       state.error = null;
@@ -113,7 +133,7 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.token = action.payload.token;
         // Store token in localStorage
-        localStorage.setItem('authToken', action.payload.token);
+        localStorage.setItem(STORAGE_TOKEN, action.payload.token);
       })
       .addCase(mockLogin.rejected, (state, action) => {
         state.loading = false;

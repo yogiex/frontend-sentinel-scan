@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- this module intentionally exports constants alongside its component */
 /**
  * SentinelScan — Logging Context
  * Path: src/contexts/LoggingContext.tsx

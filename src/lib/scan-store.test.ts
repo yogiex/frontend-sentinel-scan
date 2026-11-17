@@ -3,7 +3,7 @@
  * Path: src/lib/scan-store.test.ts
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { scanStore, Scan, ScanStatus } from './scan-store';
+import { scanStore } from './scan-store';
 
 describe('ScanStore', () => {
   beforeEach(() => {
@@ -31,14 +31,14 @@ describe('ScanStore', () => {
   });
 
   it('should retrieve all scans sorted by creation date', () => {
-    const scan1 = scanStore.createScan({
+    scanStore.createScan({
       target: '10.0.0.1',
       scanType: 'web',
       profile: 'quick',
     });
     
     // Small delay to ensure different timestamps
-    const scan2 = scanStore.createScan({
+    scanStore.createScan({
       target: 'example.com',
       scanType: 'basic',
       profile: 'full',

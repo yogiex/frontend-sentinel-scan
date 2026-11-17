@@ -5,7 +5,6 @@
 import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { useNavigationLogger } from './useNavigationLogger';
-import { logNavigation } from '@/lib/logger';
 
 vi.mock('@/lib/logger', () => ({
   logNavigation: vi.fn(),

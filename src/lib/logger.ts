@@ -314,7 +314,7 @@ class AuditLogger {
   private saveToStorage() {
     try {
       localStorage.setItem(this.config.storageKey, JSON.stringify(this.entries));
-    } catch (e) {
+    } catch {
       // Storage full — trim oldest 20%
       this.entries = this.entries.slice(0, Math.floor(this.entries.length * 0.8));
       try {

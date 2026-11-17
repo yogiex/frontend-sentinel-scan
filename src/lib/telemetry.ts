@@ -173,8 +173,12 @@ class TelemetryCollector {
       let clsValue = 0;
       const clsObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if (!(entry as any).hadRecentInput) {
-            clsValue += (entry as any).value;
+          const layoutShift = entry as PerformanceEntry & {
+            hadRecentInput?: boolean;
+            value?: number;
+          };
+          if (!layoutShift.hadRecentInput) {
+            clsValue += layoutShift.value ?? 0;
           }
         }
         this.webVitals.cls = clsValue;
@@ -310,7 +314,13 @@ class TelemetryCollector {
   // ── Memory Info ────────────────────────────────────────────────────────
 
   private _getMemoryInfo(): MemoryInfo | null {
-    const perf = performance as any;
+    const perf = performance as Performance & {
+      memory?: {
+        usedJSHeapSize: number;
+        totalJSHeapSize: number;
+        jsHeapSizeLimit: number;
+      };
+    };
     if (!perf.memory) return null;
 
     const mem = perf.memory;
@@ -325,7 +335,15 @@ class TelemetryCollector {
   // ── Network Info ───────────────────────────────────────────────────────
 
   private _getNetworkInfo(): NetworkInfo | null {
-    const conn = (navigator as any).connection;
+    const conn = (navigator as Navigator & {
+      connection?: {
+        effectiveType?: string;
+        downlink?: number;
+        rtt?: number;
+        saveData?: boolean;
+        type?: string;
+      };
+    }).connection;
     if (!conn) return null;
 
     return {

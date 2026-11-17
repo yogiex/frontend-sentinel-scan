@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer, { mockLogin, logout, clearError, setCredentials } from './authSlice';
-import type { AuthState, User } from '@/types/auth';
+import type { AuthState } from '@/types/auth';
 
 describe('authSlice', () => {
   let store: ReturnType<typeof configureStore<{ auth: AuthState }>>;

@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
 import { BrowserRouter } from "react-router-dom"
 import Index from "./index"
 
@@ -45,7 +45,7 @@ describe("Index Page - Terminal Brutalism", () => {
     expect(mainNav.className).toContain("border-b-2")
   })
 
-  it("displays terminal-style Go section instead of Gopher", () => {
+  it("displays the Go section with a terminal treatment", () => {
     render(
       <BrowserRouter>
         <Index />
@@ -56,8 +56,8 @@ describe("Index Page - Terminal Brutalism", () => {
     const goTerminalSection = screen.getByText("Go")
     expect(goTerminalSection).toBeInTheDocument()
     
-    // Check for ASCII art
-    expect(screen.getByText(/SENTINELSCAN CORE/)).toBeInTheDocument()
+    // Terminal window is the signature dark surface on the landing page
+    expect(document.querySelectorAll(".bg-scanlines").length).toBeGreaterThan(0)
   })
 
   it("has scanlines overlay in hero and CTA sections", () => {

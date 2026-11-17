@@ -1,128 +1,231 @@
 @import "tailwindcss";
+@import "@fontsource/archivo/400.css";
+@import "@fontsource/archivo/500.css";
+@import "@fontsource/archivo/600.css";
 @import "@fontsource/jetbrains-mono/400.css";
 @import "@fontsource/jetbrains-mono/500.css";
-@import "@fontsource/jetbrains-mono/700.css";
-@import "@fontsource/jetbrains-mono/800.css";
 
-/* Theme Colors - Light Professional Theme */
+/* =========================================================================
+   SentinelScan — evidence ledger
+   Sumber kebenaran: design-system/MASTER.md
+   ========================================================================= */
+
 @theme {
-  --color-amber: #f59e0b;
-  --color-danger: #ef4444;
-  --color-warning: #f59e0b;
-  --color-info: #3b82f6;
-  --color-success: #10b981;
-  --color-indigo: #4f46e5;
-  --color-slate-50: #f8fafc;
-  --color-slate-200: #e2e8f0;
-  --color-slate-500: #64748b;
-  --color-slate-900: #0f172a;
+  /* --- base --- */
+  --color-paper: #ffffff;
+  --color-surface: #f6f7f9;
+  --color-ink: #171a1f;
+  --color-steel: #5a636e;
+  --color-muted: #6b7683;
+  --color-rule: #d7dce1;
+  --color-rule-strong: #7a8592;
+  --color-signal: #1b4b8f;
+
+  /* --- risk --- */
+  --color-risk-critical: #7f1d1d;
+  --color-risk-high: #991b1b;
+  --color-risk-medium: #b45309;
+  --color-risk-low: #0e7490;
+  --color-risk-info: #475569;
+  --color-ok: #047857;
+
+  /* --- shadcn semantic mapping --- */
+  --color-background: #ffffff;
+  --color-foreground: #171a1f;
+  --color-card: #ffffff;
+  --color-card-foreground: #171a1f;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #171a1f;
+  --color-primary: #171a1f;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f6f7f9;
+  --color-secondary-foreground: #171a1f;
+  --color-muted-foreground: #5a636e;
+  --color-accent: #f0f2f5;
+  --color-accent-foreground: #171a1f;
+  --color-destructive: #991b1b;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #d7dce1;
+  --color-input: #7a8592;
+  --color-ring: #1b4b8f;
+
+  /* --- typography --- */
+  --font-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.125rem;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.375rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.625rem;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 2.25rem;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 2.75rem;
+
+  /* --- radius --- */
+  --radius-sm: 4px;
+  --radius-DEFAULT: 6px;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+  --radius-xl: 6px;
+
+  /* --- neutral ramp (transisi: menyelaraskan halaman lama) --- */
+  --color-slate-50: #f6f7f9;
+  --color-slate-100: #edf0f2;
+  --color-slate-200: #d7dce1;
+  --color-slate-300: #c3cad2;
+  --color-slate-400: #8b95a1;
+  --color-slate-500: #5a636e;
+  --color-slate-600: #4a535d;
+  --color-slate-700: #363d45;
+  --color-slate-800: #23282e;
+  --color-slate-900: #171a1f;
+
+  /* --- legacy aliases (dipakai komponen lama, dihapus setelah M4) --- */
+  --color-indigo: #1b4b8f;
+  --color-danger: #991b1b;
+  --color-warning: #b45309;
+  --color-success: #047857;
+  --color-info: #475569;
+  --color-amber: #b45309;
 }
 
 :root {
   color-scheme: light;
-  --radius: 0.75rem; /* 12px = rounded-xl - Modern & smooth for MVP */
-}
+  --radius: 6px;
 
-/* Theme CSS Custom Properties - Light Professional Theme */
-:root {
+  --paper: #ffffff;
+  --surface: #f6f7f9;
+  --ink: #171a1f;
+  --steel: #5a636e;
+  --rule: #d7dce1;
+  --rule-strong: #7a8592;
+  --signal: #1b4b8f;
+
+  --risk-critical: #7f1d1d;
+  --risk-high: #991b1b;
+  --risk-medium: #b45309;
+  --risk-low: #0e7490;
+  --risk-info: #475569;
+  --ok: #047857;
+
+  /* legacy var names kept alive for un-migrated screens */
   --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
+  --bg-secondary: #f6f7f9;
   --bg-card: #ffffff;
-  --bg-hover: #f1f5f9;
+  --bg-hover: #f0f2f5;
   --popover: #ffffff;
 
-  --primary: #4f46e5;
-  --primary-dark: #4338ca;
+  --primary: #171a1f;
+  --primary-dark: #000000;
   --primary-foreground: #ffffff;
 
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --info: #3b82f6;
+  --success: #047857;
+  --warning: #b45309;
+  --danger: #991b1b;
+  --info: #475569;
 
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
+  --text-primary: #171a1f;
+  --text-secondary: #5a636e;
+  --text-muted: #6b7683;
 
-  --border: #e2e8f0;
-  --border-light: #f1f5f9;
-  --amber: #f59e0b;
+  --border: #d7dce1;
+  --border-light: #edf0f2;
+  --amber: #b45309;
+
+  /* terminal surface (satu-satunya area gelap) */
+  --term-bg: #12151a;
+  --term-bar: #1b1f26;
+  --term-text: #c9d1d9;
+  --term-dim: #8b95a1;
+  --term-critical: #fca5a5;
+  --term-high: #fdba74;
+  --term-medium: #fde68a;
+
+  /* layout */
+  --h-header: 56px;
+  --w-rail: 56px;
+  --w-context: 232px;
+  --row-h: 40px;
 }
 
-html {
-  color-scheme: light;
-  scroll-behavior: smooth;
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4 {
+    font-weight: 600;
+    letter-spacing: -0.011em;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 2px;
+  }
+
+  code, pre, kbd, samp {
+    font-family: var(--font-mono);
+  }
 }
 
-body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
-::selection {
-  background: var(--primary);
-  color: var(--primary-foreground);
-}
-
-*:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out forwards;
-}
-
-.stagger-children > * {
-  opacity: 0;
-  animation: fadeIn 0.3s ease-out forwards;
-}
-
-.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
-.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
-.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
-.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
-.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
-
-@keyframes cursor-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-.animate-cursor-blink {
-  animation: cursor-blink 1s step-end infinite;
+/* Isi halaman: garis pemisah, bukan kartu bertumpuk */
+@utility section-rule {
+  border-top: 1px solid var(--rule);
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
-
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: var(--text-secondary);
-  border: 2px solid var(--bg-secondary);
+  background: var(--rule-strong);
+  border: 3px solid var(--paper);
+  border-radius: 999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-primary);
+  background: var(--steel);
 }
 
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation: none !important;
-    transition: none !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

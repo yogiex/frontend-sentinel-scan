@@ -1,41 +1,35 @@
-import { render, screen } from "@testing-library/react"
-import { TerminalWindow, TerminalLine, SentinelScanTerminal } from "./TerminalWindow"
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
+import { TerminalWindow, TerminalLine, SentinelScanTerminal } from './TerminalWindow';
 
-describe("TerminalWindow - Brutalist Style", () => {
-  it("renders with rounded-none and border-2", () => {
-    render(<TerminalWindow>Content</TerminalWindow>)
-    const terminal = screen.getByText("Content").parentElement
-    expect(terminal).toHaveClass("rounded-none")
-    expect(terminal).toHaveClass("border-2")
-  })
+describe('TerminalWindow', () => {
+  it('renders children and the default title', () => {
+    render(<TerminalWindow>Content</TerminalWindow>);
+    expect(screen.getByText('Content')).toBeInTheDocument();
+    expect(screen.getByText('sentinelscan://console')).toBeInTheDocument();
+  });
 
-  it("shows scanlines overlay when enabled", () => {
-    render(<TerminalWindow showScanlines>Content</TerminalWindow>)
-    const overlay = document.querySelector(".bg-scanlines")
-    expect(overlay).toBeInTheDocument()
-  })
+  it('shows the scanline overlay only when requested', () => {
+    const { container, rerender } = render(<TerminalWindow>Content</TerminalWindow>);
+    expect(container.querySelector('.bg-scanlines')).toBeNull();
+    rerender(<TerminalWindow showScanlines>Content</TerminalWindow>);
+    expect(container.querySelector('.bg-scanlines')).not.toBeNull();
+  });
 
-  it("displays custom title", () => {
-    render(<TerminalWindow title="custom://terminal">Content</TerminalWindow>)
-    expect(screen.getByText("custom://terminal")).toBeInTheDocument()
-  })
+  it('accepts a custom title', () => {
+    render(<TerminalWindow title="scan://run-42">Content</TerminalWindow>);
+    expect(screen.getByText('scan://run-42')).toBeInTheDocument();
+  });
 
-  it("TerminalLine applies correct color classes", () => {
-    render(<TerminalLine content="test" type="critical" />)
-    const line = screen.getByText("test")
-    expect(line).toHaveClass("text-[var(--danger)]")
-  })
+  it('renders a critical line in the critical token', () => {
+    render(<TerminalLine content="CVE-2024-6387" type="critical" />);
+    expect(screen.getByText('CVE-2024-6387')).toHaveStyle({ color: 'var(--term-critical)' });
+  });
 
-  it("SentinelScanTerminal renders all lines", () => {
-    render(<SentinelScanTerminal />)
-    expect(screen.getByText("$ sentinelscan --target 192.168.1.0/24")).toBeInTheDocument()
-    expect(screen.getByText(/CVE-2024-6387/)).toBeInTheDocument()
-    expect(screen.getByText("▌")).toBeInTheDocument()
-  })
-
-  it("uses monospace font", () => {
-    render(<TerminalWindow>Mono</TerminalWindow>)
-    const content = screen.getByText("Mono")
-    expect(content).toHaveClass("font-mono")
-  })
-})
+  it('renders the pre-configured demo', () => {
+    render(<SentinelScanTerminal />);
+    expect(screen.getByText(/sentinelscan scan --target/)).toBeInTheDocument();
+    expect(screen.getByText(/CVE-2024-6387/)).toBeInTheDocument();
+  });
+});

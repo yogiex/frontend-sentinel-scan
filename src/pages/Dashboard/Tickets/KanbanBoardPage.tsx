@@ -7,6 +7,19 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { KanbanBoard } from './components/KanbanBoard';
 
+interface DndNode {
+  id?: string | number | null;
+  group?: string | number | null;
+}
+
+interface DndEvent {
+  canceled?: boolean;
+  operation: {
+    source?: DndNode | null;
+    target?: DndNode | null;
+  };
+}
+
 export function KanbanBoardPage() {
   const { tickets, allTickets, updateTicketStatus } = useTicket();
   const navigate = useNavigate();
@@ -15,7 +28,7 @@ export function KanbanBoardPage() {
     navigate(`/dashboard/tickets/${ticketId}`);
   }, [navigate]);
 
-  const handleDragEnd = useCallback((event: any) => {
+  const handleDragEnd = useCallback((event: DndEvent) => {
     if (event.canceled) return;
 
     const { source, target } = event.operation;

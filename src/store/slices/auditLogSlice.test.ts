@@ -1,16 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { configureStore } from '@reduxjs/toolkit';
 import auditLogReducer, {
   loadEntries,
   addEntry,
   setFilter,
-  applyFilters,
-  updateStats,
   clearEntries,
   setLoading,
-  type AuditLogState,
 } from './auditLogSlice';
-import type { AuditLogEntry, LogLevel, AuditCategory } from '@/lib/logger';
+import type { AuditLogEntry } from '@/lib/logger';
 
 describe('auditLogSlice', () => {
   const createMockEntry = (overrides?: Partial<AuditLogEntry>): AuditLogEntry => ({
